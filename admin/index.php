@@ -57,21 +57,21 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     <img src="../logo.png" 
                          alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
                     
-                    <h1 class="text-2xl font-bold text-cinemaRed tracking-widest uppercase" style="text-shadow: 0px 0px 10px rgba(229,9,20,0.5);">
-                        SONIC <span class="text-white">ADMIN</span>
+                    <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
+                        ONIC <span class="text-white">ADMINISTRATOR</span>
                     </h1>
                 </div>
 
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="index.php" class="bg-cinemaRed text-white px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
-                        <a href="manage_movies.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
-                        <a href="manage_schedule.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Schedules</a>
-                        <a href="validation.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">
+                        <a href="index.php" class="bg-cinemaGold text-black px-3 py-2 text-l rounded-full text-sm font-medium transition">Dashboard</a>
+                        <a href="movies.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
+                        <a href="schedule.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Schedules</a>
+                        <a href="validation.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">
                             Validation
                             <?php if($total_pending > 0): ?>
                                 <span class="ml-1 bg-red-600 text-white text-xs px-1.5 rounded-full"><?= $total_pending ?></span>
@@ -85,9 +85,6 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                         <span class="text-white text-sm font-bold"><?= isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin' ?></span>
                         <span class="text-gray-400 text-xs">Administrator</span>
                     </div>
-                    <div class="h-10 w-10 rounded-full bg-cinemaRed flex items-center justify-center text-white font-bold border-2 border-cinemaBlack">
-                        A
-                    </div>
                     <a href="../logout.php" class="text-gray-400 hover:text-white transition" title="Logout">
                         <i class="ph ph-sign-out text-2xl"></i>
                     </a>
@@ -99,11 +96,12 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
     <div class="pt-20 pb-12">
         
         <div class="bg-cinemaBlack text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-cinemaRed rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-            
+            <div class="absolute inset-0 pattern-grid pointer-events-none"></div>
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-cinemaRed rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-cinemaGold rounded-full mix-blend-screen filter blur-3xl opacity-10"></div>
             <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 relative z-10">
                 <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div class="mb-6 md:mb-0">
+                    <div class="mb-7 md:mb-10">
                         <p class="text-cinemaGold font-semibold uppercase tracking-wider mb-2">KUASA ADMIN</p>
                         <h2 class="text-4xl md:text-5xl font-bold mb-4">Hello Admin !</h2>
                         <p class="text-gray-400 max-w-xl text-lg">
@@ -141,6 +139,8 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                     </div>
                 </div>
             </div>
+            </div>
+            </div>
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
@@ -150,9 +150,9 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                     <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <i class="ph ph-film-strip text-cinemaRed"></i> Sedang Tayang
                     </h3>
-                    <p class="text-gray-500 text-sm mt-1">Daftar film aktif terbaru di database.</p>
+                    <p class="text-gray-500 text-sm mt-1">Daftar film terbaru yang sedang aktif.</p>
                 </div>
-                <a href="manage_movies.php" class="text-cinemaRed font-bold hover:text-red-800 flex items-center gap-1 transition">
+                <a href="movies.php" class="text-cinemaRed font-bold hover:text-red-800 flex items-center gap-1 transition">
                     Lihat Semua Film <i class="ph ph-arrow-right"></i>
                 </a>
             </div>
@@ -165,9 +165,7 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                             <div class="relative">
                                 <img src="../assets/images/<?= $movie['poster'] ?>" 
                                      alt="<?= $movie['judul'] ?>" 
-                                     class="w-full h-64 object-cover group-hover:scale-105 transition duration-500"
-                                     onerror="this.src='https://via.placeholder.com/300x450?text=No+Poster'">
-                                
+                                     class="w-full h-64 object-cover group-hover:scale-105 transition duration-500">
                                 <div class="absolute top-2 right-2 bg-cinemaBlack text-cinemaGold text-xs font-bold px-2 py-1 rounded shadow-md">
                                     <?= $movie['duration'] ?> Menit
                                 </div>
