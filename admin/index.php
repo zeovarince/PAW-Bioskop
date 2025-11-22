@@ -25,7 +25,8 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Sonic Cinema</title>
+    <title>Admin Dashboard - Onic Cinema</title>
+    <link rel="icon" href="logo.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

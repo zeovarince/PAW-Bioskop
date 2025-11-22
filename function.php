@@ -46,13 +46,45 @@ function validatePassword(&$errors, $field_list, $field_name){
         $errors[$field_name] = 'Password harus ada huruf besar.';
     }
 }
-function validateName(&$errors, $field_list, $field_name)
-{
+function validateName(&$errors, $field_list, $field_name){
     $pattern = "/^[a-zA-Z' -]+$/";
     if (empty(trim($field_list[$field_name] ?? ''))) {
         $errors[$field_name] = 'Nama wajib diisi.';
     } elseif (!preg_match($pattern, $field_list[$field_name])) {
         $errors[$field_name] = 'Nama hanya boleh huruf dan spasi.';
+    }
+}
+
+function register($data){
+    global $conn;
+    $username = mysqli_real_escape_string($conn, $data['username']);
+    $email = mysqli_real_escape_string($conn, $data['email']);
+    $password = mysqli_real_escape_string($conn, $data['password']);
+    $confirm_password = mysqli_real_escape_string($conn, $data['confirm_password']);
+
+    $error = [];
+    validateName($error,$data,'username');
+    validateEmail($error,$data,'email');
+    validatePassword($error,$data,'password');
+
+    if ($password !== $confirm_password) {
+        $error['confirm_password'] = "Konfirmasi password tidak sesuai!";
+    }
+
+    $cek_email = mysqli_query($conn, "SELECT email FROM users WHERE email = '$email'");
+    if (mysqli_num_rows($cek_email) > 0){
+        $error['email'] = "Email sudah terdaftar! Silakan login.";
+    }
+
+    if (!empty($error)) {
+        return $error;
+    }
+
+    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+    if (mysqli_query($conn, $tambah_user)) {
+        return true;
+    } else {
+        return ["general" => "Gagal mendaftar: " . mysqli_error($conn)];
     }
 }
 ?>
