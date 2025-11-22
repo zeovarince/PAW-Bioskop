@@ -35,7 +35,7 @@ if (isset($_POST['login'])){
     <div class="w-full max-w-md p-8 space-y-6 bg-cinemaDark rounded-xl shadow-2xl">
         
         <div class="text-center">
-            <h1 class="text-3xl font-bold text-cinemaRed tracking-wider uppercase">Bioskop name</h1>
+            <h1 class="text-3xl font-bold text-cinemaRed tracking-wider uppercase">ONIC CINEMA</h1>
             <p class="text-gray-400 text-sm mt-2">Login to continue</p>
         </div>
 
