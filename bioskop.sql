@@ -1,3 +1,6 @@
+-- INI DI IMPORT KE PHP MY ADMIN KALIAN
+CREATE DATABASE db_bioskop;
+
 USE db_bioskop;
 
 -- Tabel Users
@@ -91,4 +94,4 @@ ALTER TABLE reviews ADD CONSTRAINT fk_reviews_movie
 
 -- nambah admin
 INSERT INTO users (username, email, password, role) 
-VALUES ('adminPAW', 'adminpaw@gmail.com', 'paw', '1');
+VALUES ('adminPAW', 'adminpaw@gmail.com', 'd8d3aedd4b5d0ce0131600eaadc48dcb', '1');
