@@ -4,7 +4,7 @@ include "koneksi.php";
 function checklogin ($data){
     global $conn;
     $email = mysqli_real_escape_string($conn,$data['email']);
-    $password = $data['password'];
+    $password = md5($data['password']);
 
     $query = "SELECT * FROM users WHERE email ='$email' AND password= '$password' ";
     $result = mysqli_query($conn,$query);
@@ -79,8 +79,9 @@ function register($data){
     if (!empty($error)) {
         return $error;
     }
+    $pw=md5($password);
 
-    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$pw')";
     if (mysqli_query($conn, $tambah_user)) {
         return true;
     } else {

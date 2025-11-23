@@ -26,7 +26,7 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Onic Cinema</title>
-    <link rel="icon" href="logo.png">
+    <link rel="icon" href="../logo.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -54,7 +54,7 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
-    <nav class="glass-nav fixed w-full z-50 border-b border-gray-800">
+    <nav class="glass-nav fixed w-full z-50 bg-cinemaBlack">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 
@@ -78,6 +78,7 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                                 <span class="ml-1 bg-red-600 text-white text-xs px-1.5 rounded-full"><?= $total_pending ?></span>
                             <?php endif; ?>
                         </a>
+                        <a href="report.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Report</a>
                     </div>
                 </div>
 
