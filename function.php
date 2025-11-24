@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 function esc($str) {
     global $conn;
     return mysqli_real_escape_string($conn, trim($str));
@@ -8,7 +10,7 @@ include "koneksi.php";
 function checklogin ($data){
     global $conn;
     $email = esc($data['email']);
-    $password = $data['password'];
+    $password = md5($data['password']);
 
     $query = "SELECT * FROM users WHERE email ='$email' AND password= '$password' ";
     $result = mysqli_query($conn,$query);
