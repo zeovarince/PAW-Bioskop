@@ -1,5 +1,5 @@
 <?php
-include "koneksi.php";
+include "../koneksi.php";
 
 // cek jika id film ada
 if (!isset($_GET['id'])) {
@@ -35,7 +35,7 @@ $release_date_raw = col($movie, 'release_date', '');
 $release_date = $release_date_raw ? date("d M Y", strtotime($release_date_raw)) : "-";
 $description = htmlspecialchars(col($movie, 'description'));
 
-$poster_src = 'uploads/' . $poster_file;
+$poster_src = '../assets/images/' . $poster_file;
 if (empty($poster_file) || !file_exists($poster_src)) {
     $poster_src = 'https://via.placeholder.com/400x600?text=No+Poster';
 }
@@ -56,6 +56,7 @@ for ($i = 0; $i < 7; $i++) {
 <head>
 <meta charset="UTF-8">
 <title><?php echo $judul; ?> - Buy Ticket</title>
+<link rel="icon" href="../../logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
 <style>

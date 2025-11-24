@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 function safe($row, $keys, $default = '') {
     if (!is_array($keys)) $keys = [$keys];
@@ -11,7 +11,7 @@ function safe($row, $keys, $default = '') {
 
 function poster_src($filename) {
     if (empty($filename)) return 'https://via.placeholder.com/300x450?text=No+Poster';
-    $p1 = 'uploads/' . $filename;
+    $p1 = '../assets/images/' . $filename;
     if (file_exists($p1)) return $p1;
     return 'https://via.placeholder.com/300x450?text=No+Poster';
 }
@@ -38,7 +38,8 @@ while ($row = mysqli_fetch_assoc($res)) {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>onic Cinema - Movies</title>
+<title>Onic Cinema - Movies</title>
+<link rel="icon" href="../logo.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -61,7 +62,7 @@ tailwind.config = {
 <nav class="bg-cinemaBlack border-b border-gray-800 py-4">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <img src="logo.png" class="h-10" alt="Logo">
+            <img src="../logo.png" class="h-10" alt="Logo">
             <h1 class="text-2xl font-bold text-cinemaRed uppercase">ONIC <span class="text-white">CINEMA</span></h1>
         </div>
         <div class="hidden md:block">
