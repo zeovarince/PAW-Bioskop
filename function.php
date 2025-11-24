@@ -1,48 +1,96 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) session_start();
+session_start();
 include "koneksi.php";
-
-// --- HELPER FUNCTION (Biar kodingan lebih pendek) ---
-function esc($str) { global $conn; return mysqli_real_escape_string($conn, trim($str)); }
-
-// --- AUTHENTICATION ---
-function checklogin($data) {
+function checklogin ($data){
     global $conn;
-    $email = esc($data['email']);
-    $password = md5($data['password']);
+    $email = mysqli_real_escape_string($conn,$data['email']);
+    $password = $data['password'];
 
-    $res = mysqli_query($conn, "SELECT * FROM users WHERE email ='$email' AND password='$password'");
-    if (mysqli_num_rows($res) > 0) {
-        $u = mysqli_fetch_assoc($res);
-        $_SESSION = ['login' => true, 'user_id' => $u['Id_user'], 'username' => $u['username'], 'role' => $u['role']];
-        header("location: " . ($u['role'] == '1' ? "admin/index.php" : "index.php")); 
+    $query = "SELECT * FROM users WHERE email ='$email' AND password= '$password' ";
+    $result = mysqli_query($conn,$query);
+
+    if (mysqli_num_rows($result) > 0){
+        $user = mysqli_fetch_assoc($result);
+        $_SESSION['login'] = true;
+        $_SESSION['user_id'] = $user['Id_user'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = ($user['role']);
+
+        if ($user ['role'] == '1'){
+            header("location: admin/index.php");
+        }else{
+            header("location: custommer/index.php");
+        }
         exit;
+
+    }else { 
+        return "email dan password anda salah";
     }
-    return "Email atau password salah.";
 }
 
-function register($data) {
+function validateEmail(&$errors, $field_list, $field_name){
+    $email = strtolower(trim($field_list[$field_name] ?? ''));
+    if (empty($email)) {
+        $errors[$field_name] = 'Email wajib diisi.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[$field_name] = 'Format email tidak valid.';
+    }
+}
+function validatePassword(&$errors, $field_list, $field_name){
+    $password = $field_list[$field_name] ?? '';
+    if (empty($password)) {
+        $errors[$field_name] = 'Password wajib diisi.';
+    } elseif (strlen($password) < 6) {
+        $errors[$field_name] = 'Password minimal 6 karakter.';
+    } elseif (!preg_match("/[A-Z]/", $password)) {
+        $errors[$field_name] = 'Password harus ada huruf besar.';
+    }
+}
+function validateName(&$errors, $field_list, $field_name){
+    $pattern = "/^[a-zA-Z' -]+$/";
+    if (empty(trim($field_list[$field_name] ?? ''))) {
+        $errors[$field_name] = 'Nama wajib diisi.';
+    } elseif (!preg_match($pattern, $field_list[$field_name])) {
+        $errors[$field_name] = 'Nama hanya boleh huruf dan spasi.';
+    }
+}
+
+function register($data){
     global $conn;
-    $user = esc($data['username']);
-    $email = esc($data['email']);
-    $pass = $data['password'];
+    $username = mysqli_real_escape_string($conn, $data['username']);
+    $email = mysqli_real_escape_string($conn, $data['email']);
+    $password = mysqli_real_escape_string($conn, $data['password']);
+    $confirm_password = mysqli_real_escape_string($conn, $data['confirm_password']);
 
-    // Validasi Simple
-    $err = [];
-    if (empty($user) || !preg_match("/^[a-zA-Z' -]+$/", $user)) $err['username'] = "Nama wajib isi & hanya huruf.";
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $err['email'] = "Format email salah.";
-    if (strlen($pass) < 6 || !preg_match("/[A-Z]/", $pass)) $err['password'] = "Pass min 6 kar & 1 huruf besar.";
-    if ($pass !== $data['confirm_password']) $err['confirm_password'] = "Konfirmasi password beda.";
-    
-    if (mysqli_num_rows(mysqli_query($conn, "SELECT email FROM users WHERE email='$email'")) > 0) 
-        $err['email'] = "Email sudah terdaftar.";
+    $error = [];
+    validateName($error,$data,'username');
+    validateEmail($error,$data,'email');
+    validatePassword($error,$data,'password');
 
-    if (!empty($err)) return $err;
+    if ($password !== $confirm_password) {
+        $error['confirm_password'] = "Konfirmasi password tidak sesuai!";
+    }
 
-    $pw_hash = md5($pass);
-    return mysqli_query($conn, "INSERT INTO users (username, email, password) VALUES ('$user', '$email', '$pw_hash')") ? true : ["general" => "Gagal: ".mysqli_error($conn)];
+    $cek_email = mysqli_query($conn, "SELECT email FROM users WHERE email = '$email'");
+    if (mysqli_num_rows($cek_email) > 0){
+        $error['email'] = "Email sudah terdaftar! Silakan login.";
+    }
+
+    if (!empty($error)) {
+        return $error;
+    }
+
+    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+    if (mysqli_query($conn, $tambah_user)) {
+        return true;
+    } else {
+        return ["general" => "Gagal mendaftar: " . mysqli_error($conn)];
+    }
 }
-
+function esc($str) {
+    global $conn;
+    return mysqli_real_escape_string($conn, trim($str));
+}
 // --- CRUD MOVIES ---
 function getMovies($id = null) {
     global $conn;
