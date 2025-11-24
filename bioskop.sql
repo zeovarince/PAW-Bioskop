@@ -1,4 +1,3 @@
--- INI DI IMPORT KE PHP MY ADMIN KALIAN
 CREATE DATABASE db_bioskop;
 
 USE db_bioskop;
@@ -37,18 +36,29 @@ CREATE TABLE movies (
     release_date DATE
 );
 
-INSERT INTO `movies` (`Id_movie`, `judul`, `rating`, `genre`, `description`, `duration`, `director`, `poster`, `release_date`, `age_rating`) VALUES
-(1, 'Pangku', '8.7', 'Drama, Romance', 'Sartika, seorang perempuan muda yang hamil, meninggalkan kampung halamannya untuk mencari harapan di Pantura, dan bertemu Maya yang membantunya melalui kehidupan baru penuh tantangan dan cinta.', 120, 'Reza Rahadian', 'pangku.jpg', '2025-11-06', '17+'),
-(2, 'Kuncen', '7.9', 'Horror, Misteri', 'Awindya nekat mendaki Gunung Merapi untuk mencari Devlin yang hilang, namun kekuatan gelap pegunungan mulai mengancam jiwa mereka.', 105, 'Jose Poernomo', 'kuncen.jpg', '2025-11-06', '17+'),
-(3, 'Sosok Ketiga: Lintrik', '8.2', 'Horor, Drama', 'Andin merasa ada kekuatan gelap dalam rumah tangganya setelah enam bulan menikah; Naura menggunakan ilmu pelet “Lintrik” yang menghantui kehidupan Andin & Aryo.', 110, 'Fajar Nugros', 'sosok_ketiga_lintrik.jpg', '2025-11-06', '17+'),
-(4, 'Solata', '7.5', 'Drama, Religi', 'Angkasa menjadi relawan guru di Tana Toraja dan bertemu murid-murid yang mengubah pandangannya tentang kehidupan dan makna doa.', 110, 'Ody C. Harahap', 'solata.jpg', '2025-11-06', 'all'),
-(5, 'Dopamin', '9.0', 'Drama, Thriller', 'Malik dan Alya menghadapi krisis rumah tangga dan keuangan setelah Malik di-PHK; sebuah kejadian misterius terjadi saat seorang tamu asing datang dengan koper miliaran.', 95, 'Teddy Soeriaatmadja', 'dopamin.jpg', '2025-11-13', '13+'),
-(6, 'Wicked: For Good', '8.8', 'Musikal, Fantasi', 'Elphaba dan Glinda menghadapi pilihan moral dan ambisi dalam dunia sihir; konflik persahabatan dan kekuasaan mewarnai kisah mereka.', 137, 'Jon M.Chu', 'wicked_for_good.jpg', '2025-11-19', '13+'),
-(7, 'Now You See Me: Now You Don’t', '8.6', 'Thriller, Kejahatan', 'Para pesulap Four Horsemen dan generasi baru bersatu untuk mencuri berlian besar milik perusahaan kriminal dan membongkar konspirasi global.', 125, 'Ruben Fleischer', 'now_you_see_me_3.jpg', '2025-11-14', '13+'),
-(8, 'Avatar 3', '9.5', 'action-adventure, science fiction, and fantasy', 'The next chapter of the Avatar saga.', 190, 'James Cameron', 'avatar3.jpg', '2025-12-20', '13+'),
-(12, 'Five Nights at Freddy’s 2', '0', 'Horror', 'Sekuel menegangkan dari franchise animatronik horror. ‒ akan tayang Desember 2025 ', 100, 'Emma Tammi', 'fnaf2_2.jpg', '2025-12-05', '17+'),
-(13, 'The Housemaid', '0', 'Horror / Thriller', 'Seorang pembantu rumah tangga menghadapi rahasia gelap keluarga majikannya. ‒ rilis 31 Desember 2025 ', 95, 'Jean Kim', 'the_housemaid.jpg', '2025-12-31', '17+');
+ALTER TABLE movies
+    ADD COLUMN rating VARCHAR(10),
+    ADD COLUMN genre VARCHAR(100),
+    ADD COLUMN age_rating VARCHAR(5),
+    ADD COLUMN director VARCHAR(100);
 
+
+INSERT INTO movies (judul, rating, genre, description, duration, director, poster, release_date, age_rating) VALUES
+('Pangku', '8.7', 'Drama, Romance', 'Sartika mencari harapan baru di Pantura dan bertemu Maya yang membantunya melalui kehidupan penuh tantangan.', 120, 'Reza Rahadian', 'pangku.jpg', '2025-11-06', '17+'),
+('Kuncen', '7.9', 'Horror, Misteri', 'Awindya nekat mendaki Merapi mencari Devlin, namun kekuatan gelap pegunungan mengancam jiwa mereka.', 105, 'Jose Poernomo', 'kuncen.jpg', '2025-11-06', '17+'),
+('Sosok Ketiga: Lintrik', '8.2', 'Horor, Drama', 'Andin merasa ada kekuatan gelap di rumah tangganya; Naura menggunakan pelet Lintrik yang menghantui Andin & Aryo.', 110, 'Fajar Nugros', 'sosok_ketiga_lintrik.jpg', '2025-11-06', '17+'),
+('Solata', '7.5', 'Drama, Religi', 'Angkasa menjadi relawan guru di Tana Toraja dan bertemu murid-murid yang mengubah pandangannya tentang hidup.', 110, 'Ody C. Harahap', 'solata.jpg', '2025-11-06', 'all'),
+('Dopamin', '9.0', 'Drama, Thriller', 'Malik dan Alya menghadapi krisis setelah PHK; kejadian misterius terjadi saat tamu asing datang dengan koper miliaran.', 95, 'Teddy Soeriaatmadja', 'dopamin.jpg', '2025-11-13', '13+'),
+('Wicked: For Good', '8.8', 'Musikal, Fantasi', 'Elphaba dan Glinda menghadapi pilihan moral dan ambisi di dunia sihir yang diwarnai konflik kekuasaan.', 137, 'Jon M. Chu', 'wicked_for_good.jpg', '2025-11-19', '13+'),
+('Now You See Me: Now You Don’t', '8.6', 'Thriller, Kejahatan', 'Four Horsemen dan generasi baru bersatu mencuri berlian besar milik perusahaan kriminal dan membongkar konspirasi.', 125, 'Ruben Fleischer', 'now_you_see_me_3.jpg', '2025-11-14', '13+'),
+('Avatar 3', '9.5', 'Action, Sci-Fi, Fantasy', 'Babak baru saga Avatar di mana Jake Sully dan Neytiri menghadapi ancaman Bangsa Abu yang agresif di Pandora.', 190, 'James Cameron', 'avatar3.jpg', '2025-12-20', '13+'),
+('Five Nights at Freddy’s 2', '7.5', 'Horror', 'Sekuel menegangkan dari franchise animatronik horror yang membawa teror baru di Freddy Fazbear Pizza.', 100, 'Emma Tammi', 'fnaf2_2.jpg', '2025-12-05', '17+'),
+('The Housemaid', '6.8', 'Sci-Fi, Thriller', 'Seorang asisten rumah tangga robotik mulai mengembangkan kesadaran sendiri dan mengambil alih kendali keluarga.', 95, 'Jean Kim', 'the_housemaid.jpg', '2025-12-31', '17+'),
+('One Piece Film: Red', '8.4', 'Animation, Action, Adventure', 'Uta, penyanyi dunia lain dan putri Shanks, tampil perdana di konser yang berubah kacau saat identitasnya terungkap.', 115, 'Goro Taniguchi', 'opred.jpg', '2022-09-21', '13+'),
+('Gridman Universe (SSSS.DYNAZENON)', '7.8', 'Animation, Action, Mecha', 'Crossover epik SSSS.GRIDMAN dan SSSS.DYNAZENON di mana Yuta dan teman-temannya menghadapi ancaman Kaiju baru.', 118, 'Akira Amemiya', 'dynazenon.jpg', '2023-03-24', '13+'),
+('BoBoiBoy Galaxy: Baraju', '8.9', 'Animation, Action, Comedy', 'BoBoiBoy bertualang ke galaksi baru mencari Power Sphera kuno dan menghadapi musuh elemen badai di Arc Baraju.', 120, 'Nizam Razak', 'boboiboy.jpg', '2025-06-15', 'SU'),
+('Detective Conan: The Million-dollar Pentagram', '8.2', 'Animation, Mystery, Crime', 'Conan, Heiji, dan Kaito Kid terlibat perebutan pedang kuno dan konspirasi pembunuhan di Hakodate.', 110, 'Chika Nagaoka', 'conan.jpg', '2024-04-12', '13+'),
+('Omniscient Reader', '8.8', 'Action, Fantasy, Thriller', 'Kim Dokja, seorang pekerja kantoran biasa, adalah satu-satunya orang yang mengetahui akhir dari novel web favoritnya. Ketika dunia novel tersebut tiba-tiba menjadi kenyataan, ia harus menggunakan pengetahuannya untuk bertahan hidup dan menyelamatkan dunia bersama sang protagonis, Yoo Joonghyuk.', 120, 'Kim Byung-woo', 'omniscient_reader.jpg', '2025-07-23', '13+');
 
 -- Tabel Jadwal
 CREATE TABLE jadwal (
@@ -832,7 +842,7 @@ CREATE TABLE `transaksi` (
   `nama_customer` varchar(100) DEFAULT NULL,
   `tanggal_beli` datetime DEFAULT CURRENT_TIMESTAMP,
   `kursi` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 -- ngehubungin antar table fk (foreign key)
@@ -856,12 +866,6 @@ ALTER TABLE reviews ADD CONSTRAINT fk_reviews_user
 
 ALTER TABLE reviews ADD CONSTRAINT fk_reviews_movie
     FOREIGN KEY (Id_movie) REFERENCES movies(Id_movie) ON DELETE CASCADE;
-
-ALTER TABLE movies
-    ADD COLUMN rating VARCHAR(10),
-    ADD COLUMN genre VARCHAR(100),
-    ADD COLUMN age_rating VARCHAR(5),
-    ADD COLUMN director VARCHAR(100);
 
 ALTER TABLE studios MODIFY capacity INT NOT NULL DEFAULT 0;
 
