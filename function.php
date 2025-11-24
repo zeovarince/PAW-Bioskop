@@ -61,10 +61,10 @@ function validateName(&$errors, $field_list, $field_name){
 
 function register($data){
     global $conn;
-    $username = esc($conn, $data['username']);
-    $email = esc($conn, $data['email']);
-    $password = esc($conn, $data['password']);
-    $confirm_password = esc($conn, $data['confirm_password']);
+    $username = esc($data['username']);
+    $email = esc($data['email']);
+    $password = esc($data['password']);
+    $confirm_password = esc($data['confirm_password']);
 
     $error = [];
     validateName($error,$data,'username');
