@@ -76,7 +76,6 @@ function register($data){
     if ($password !== $confirm_password) {
         $error['confirm_password'] = "Konfirmasi password tidak sesuai!";
     }
-
     $cek_email = mysqli_query($conn, "SELECT email FROM users WHERE email = '$email'");
     if (mysqli_num_rows($cek_email) > 0){
         $error['email'] = "Email sudah terdaftar! Silakan login.";
@@ -86,7 +85,8 @@ function register($data){
         return $error;
     }
 
-    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+    $pw=md5($password);
+    $tambah_user = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$pw')";
     if (mysqli_query($conn, $tambah_user)) {
         return true;
     } else {
