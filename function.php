@@ -1,9 +1,13 @@
 <?php
 session_start();
+function esc($str) {
+    global $conn;
+    return mysqli_real_escape_string($conn, trim($str));
+}
 include "koneksi.php";
 function checklogin ($data){
     global $conn;
-    $email = mysqli_real_escape_string($conn,$data['email']);
+    $email = esc($data['email']);
     $password = $data['password'];
 
     $query = "SELECT * FROM users WHERE email ='$email' AND password= '$password' ";
@@ -57,10 +61,10 @@ function validateName(&$errors, $field_list, $field_name){
 
 function register($data){
     global $conn;
-    $username = mysqli_real_escape_string($conn, $data['username']);
-    $email = mysqli_real_escape_string($conn, $data['email']);
-    $password = mysqli_real_escape_string($conn, $data['password']);
-    $confirm_password = mysqli_real_escape_string($conn, $data['confirm_password']);
+    $username = esc($conn, $data['username']);
+    $email = esc($conn, $data['email']);
+    $password = esc($conn, $data['password']);
+    $confirm_password = esc($conn, $data['confirm_password']);
 
     $error = [];
     validateName($error,$data,'username');
@@ -86,10 +90,6 @@ function register($data){
     } else {
         return ["general" => "Gagal mendaftar: " . mysqli_error($conn)];
     }
-}
-function esc($str) {
-    global $conn;
-    return mysqli_real_escape_string($conn, trim($str));
 }
 // --- CRUD MOVIES ---
 function getMovies($id = null) {
