@@ -181,7 +181,7 @@ $tampil = mysqli_query($conn, "SELECT * FROM movies ORDER BY Id_movie DESC LIMIT
                                     <span><i class="ph ph-calendar-blank"></i> <?= date('d M Y', strtotime($movie['release_date'])) ?></span>
                                 </div>
                                 
-                                <a href="edit_movie.php?id=<?= $movie['Id_movie'] ?>" class="mt-4 block w-full text-center bg-gray-100 hover:bg-cinemaRed hover:text-white text-gray-600 py-2 rounded-lg text-sm font-semibold transition">
+                                <a href="manage_movie.php?id=<?= $movie['Id_movie'] ?>" class="mt-4 block w-full text-center bg-gray-100 hover:bg-cinemaRed hover:text-white text-gray-600 py-2 rounded-lg text-sm font-semibold transition">
                                     Edit Info
                                 </a>
                             </div>
