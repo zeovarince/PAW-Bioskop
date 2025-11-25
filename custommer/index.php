@@ -108,7 +108,7 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
                         <i class="ph ph-sign-out text-xl"></i>
                     </a>
                 <?php else: ?>
-                    <a href="login.php" class="bg-cinemaRed hover:bg-red-700 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-lg shadow-red-900/20">
+                    <a href="../login.php" class="bg-cinemaRed hover:bg-red-700 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-lg shadow-red-900/20">
                         Masuk / Daftar
                     </a>
                 <?php endif; ?>
