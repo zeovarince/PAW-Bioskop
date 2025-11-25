@@ -104,7 +104,7 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
                         <p class="text-sm font-bold text-white">Halo, <?= $_SESSION['username'] ?></p>
                         <p class="text-xs text-cinemaGold">Member</p>
                     </div>
-                    <a href="logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
+                    <a href="../logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
                         <i class="ph ph-sign-out text-xl"></i>
                     </a>
                 <?php else: ?>
@@ -248,13 +248,13 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
                 <div class="flex items-center gap-3 mb-6 md:mb-0">
                     <img src="../logo.png" alt="Logo" class="h-12 opacity-80 grayscale hover:grayscale-0 transition" onerror="this.style.display='none'">
                     <div class="text-gray-400 text-sm">
-                        <p class="font-bold text-white">SONIC CINEMA</p>
+                        <p class="font-bold text-white">ONIC CINEMA</p>
                         <p>Hiburan Tanpa Batas.</p>
                     </div>
                 </div>
             </div>
             <div class="border-t border-gray-900 pt-8 text-center text-gray-600 text-sm">
-                &copy; <?= date('Y') ?> Sonic Cinema. Developed for Web Programming Final Project.
+                &copy; <?= date('Y') ?> Onic Cinema. Developed for Web Programming Final Project.
             </div>
         </div>
     </footer>
