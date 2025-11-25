@@ -61,14 +61,18 @@ tailwind.config = {
 
 <nav class="bg-cinemaBlack border-b border-gray-800 py-4">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <img src="../logo.png" class="h-10" alt="Logo">
-            <h1 class="text-2xl font-bold text-cinemaRed uppercase">ONIC <span class="text-white">CINEMA</span></h1>
+        <div class="flex items-center gap-4">
+            <img src="../logo.png" 
+                    alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
+            
+            <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
+                ONIC <span class="text-white">CINEMA</span>
+            </h1>
         </div>
         <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-                <a href="index.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
-                <a href="movies.php" class="bg-cinemaRed text-white px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
+                <a href="index.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
+                <a href="movies.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
                 <a href="schedule.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Schedule</a>
                 <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Contact</a>
             </div>
