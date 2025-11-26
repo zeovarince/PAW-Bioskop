@@ -1,6 +1,6 @@
 <?php
 include '../koneksi.php';
-
+// test contributor
 function safe($row, $keys, $default = '') {
     if (!is_array($keys)) $keys = [$keys];
     foreach ($keys as $key) {
