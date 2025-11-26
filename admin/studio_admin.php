@@ -5,28 +5,19 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] != '1') {
     exit;
 }
 
-include "../koneksi.php";
+// Dummy seat (tanpa database)
+$bookedSeats = [];
 
+// Baris kursi
+$baris_nama = ["","B","C","D","E","F","G","H","I","J"];
+
+// Studio
 $id_studio = $_GET['studio'] ?? '';
-$studioListQuery = mysqli_query($conn, "SELECT * FROM studios ORDER BY Id_studio");
-$studios = [];
-while ($s = mysqli_fetch_assoc($studioListQuery)) {
-    $studios[] = $s;
-}
-
-if ($id_studio) {
-    $studioQuery = mysqli_query($conn, "SELECT * FROM studios WHERE Id_studio='$id_studio'");
-    if ($studioQuery && mysqli_num_rows($studioQuery) > 0) {
-        $studio = mysqli_fetch_assoc($studioQuery);
-        $total_baris = (int)$studio['total_baris'];
-        $total_kursi_per_baris = (int)$studio['total_kursi_per_baris'];
-        
-        // Batasi penamaan baris, misalnya sampai Z (26 baris)
-        $baris_nama = range('A', chr(min(ord('A') + $total_baris - 1, ord('Z'))));
-    } else {
-        $id_studio = '';
-    }
-}
+$namaStudio = [
+    1 => "REGULAR 2D",
+    2 => "DOLBY ATMOS",
+    3 => "IMAX"
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,223 +25,225 @@ if ($id_studio) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Studio - Onic Cinema</title>
+
 <link rel="icon" href="../logo.png">
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/css/icons.css">
 
 <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    cinemaBlack: '#141414',
-                    cinemaDark: '#1f1f1f',
-                    cinemaRed: '#E50914',
-                    cinemaGold: '#FFD700',
-                }
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                cinemaBlack: '#141414',
+                cinemaDark: '#1f1f1f',
+                cinemaRed: '#E50914',
+                cinemaGold: '#FFD700',
             }
         }
     }
+}
 </script>
 
 <style>
-    .glass-nav {
-        background: rgba(20, 20, 20, 0.9);
-        backdrop-filter: blur(10px);
-    }
+    body { margin: 0; padding: 0; }
+
+    /* kursi */
     .seat { 
-        width: 32px; 
-        height: 32px; 
-        margin: 3px; 
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center; 
-        border-radius: 6px; 
-        font-size: 0.75rem; /* text-xs */
-        font-weight: bold; 
-        cursor: pointer; 
-        transition: transform 0.1s, box-shadow 0.1s;
+        width:50px;height:50px;margin:4px;display:inline-flex;
+        align-items:center;justify-content:center;border-radius:8px;
+        font-weight:bold;cursor:pointer; 
     }
-    .seat:hover:not(.sold):not(.reserved) {
-        transform: scale(1.1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    .reguler { background:#222; color:white; }
+    .sweetbox { background:#ff69b4; color:black; width:110px; }
+    .booked { background:red !important; color:white !important; cursor:not-allowed; }
+    .lorong { display:inline-block;width:50px; }
+
+    /* Header glass */
+    .glass-nav {
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
     }
 
-    /* Statuses */
-    .reguler { background-color: #374151; color: white; } /* gray-700 */
-    /* .sweetbox dihapus */
-    .reserved { background-color: #f59e0b; color: white; } /* amber-500 */
-    .sold { background-color: #dc2626; color: white; cursor: not-allowed; opacity: 0.8; } /* red-600 */
-    .lorong { display: inline-block; width: 30px; }
+    /* Glow animasi */
+    @keyframes glow {
+        0% { text-shadow: 0 0 8px rgba(255,255,255,0.7); }
+        50% { text-shadow: 0 0 16px rgba(255,255,255,1); }
+        100% { text-shadow: 0 0 8px rgba(255,255,255,0.7); }
+    }
+    .glow {
+        animation: glow 2.2s infinite ease-in-out;
+    }
+
+    /* tombol studio */
+    .studio-btn {
+        padding:1.4rem; border-radius:1rem; background:#FFD700;
+        font-weight:bold; text-align:center; transition:0.2s; font-size:1.2rem;
+    }
+    .studio-btn:hover { background:#e6c300; transform:scale(1.03); }
+
+    /* LAYAR BIOSKOP */
     .screen {
-        background: #141414;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        width: 90%;
+        height: 50px;
+        margin: 0 auto 25px auto;
+        background: linear-gradient(to bottom, #ffffff, #d9d9d9);
+        border-radius: 0 0 30px 30px;
+        box-shadow: 0 0 25px rgba(255,255,255,0.7);
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        padding-top: 10px;
+        color: #333;
+        letter-spacing: 2px;
     }
 </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans text-gray-800">
 
-<!-- Navigasi Admin -->
-<nav class="glass-nav fixed w-full z-50 bg-cinemaBlack">
+
+<!-- ========================= HEADER ========================= -->
+<nav class="glass-nav fixed top-0 left-0 w-full z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
+            
+            <!-- LOGO + TITLE -->
             <div class="flex items-center gap-4">
-                <img src="../logo.png" alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
-                <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
-                    ONIC <span class="text-white">ADMINISTRATOR</span>
+                <img src="../logo.png" class="h-12 w-auto object-contain">
+                
+                <h1 class="text-3xl font-bold tracking-widest uppercase">
+                    <span class="text-cinemaGold glow">ONIC</span>
+                    <span class="text-white glow">ADMINISTRATOR</span>
                 </h1>
             </div>
 
-            <div class="hidden md:block">
-                <div class="ml-10 flex items-baseline space-x-4">
-                    <a href="index.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
-                    <a href="movies.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
-                    <a href="schedule.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Schedules</a>
-                    <a href="manage_studio.php" class="bg-cinemaGold text-black px-3 py-2 text-l rounded-full text-sm font-medium transition">Studios</a>
-                    <a href="validation.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Validation</a>
-                    <a href="report.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Report</a>
-                </div>
-            </div>
+            <!-- MENU -->
+            <div class="hidden md:flex items-center space-x-6 text-[15px]">
 
-            <div class="flex items-center gap-4">
-                <span class="text-white text-sm font-bold hidden md:block"><?= isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin' ?></span>
-                <a href="../logout.php" class="text-gray-400 hover:text-white transition" title="Logout">
-                    <i class="ph ph-sign-out text-2xl"></i>
+                <a href="index.php"
+                   class="px-4 py-2 rounded-full
+                   <?= basename($_SERVER['PHP_SELF'])=='index.php' ? 'bg-cinemaGold text-black' : 'text-gray-300 hover:text-cinemaRed' ?>">
+                   Dashboard
                 </a>
+
+                <a href="movies.php"
+                   class="font-medium 
+                   <?= basename($_SERVER['PHP_SELF'])=='movies.php' ? 'text-red-500' : 'text-gray-300 hover:text-red-500' ?>">
+                   Movies
+                </a>
+
+                <a href="studio_admin.php"
+                   class="px-4 py-2 rounded-full
+                   <?= basename($_SERVER['PHP_SELF'])=='studio_admin.php' ? 'bg-cinemaGold text-black' : 'text-gray-300 hover:text-cinemaRed' ?>">
+                   Studio
+                </a>
+
+                <a href="schedule.php"
+                   class="text-gray-300 hover:text-cinemaRed">
+                   Schedules
+                </a>
+
+                <a href="validation.php"
+                   class="text-gray-300 hover:text-cinemaRed">
+                   Validation
+                </a>
+
+                <a href="report.php"
+                   class="text-gray-300 hover:text-cinemaRed">
+                   Report
+                </a>
+
+                <!-- ADMIN INFO -->
+                <div class="flex items-center gap-3 pl-6 border-l border-gray-700">
+
+                    <div class="leading-tight text-right">
+                        <div class="font-bold text-white text-[15px]">
+                            <?= $_SESSION['username'] ?? 'adminPAW' ?>
+                        </div>
+                        <div class="text-sm text-gray-400 -mt-1">
+                            Administrator
+                        </div>
+                    </div>
+
+                    <a href="../logout.php" 
+                       class="text-gray-300 text-xl font-bold hover:text-cinemaRed transition">
+                        ➜
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
 </nav>
 
-<!-- Main Content -->
-<main class="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        <i class="ph ph-projector-screen text-cinemaRed"></i> Visualisasi Denah Studio
-    </h2>
 
-    <div class="flex flex-wrap items-center gap-3 mb-6 bg-white p-4 rounded-xl shadow-md border">
-        <strong class="text-sm text-gray-700">Pilih Studio:</strong>
-        <?php foreach ($studios as $s): ?>
-            <a href="?studio=<?= $s['Id_studio'] ?>" 
-               class="px-3 py-1.5 rounded-full text-sm font-semibold transition 
-               <?= ($id_studio == $s['Id_studio']) ? 'bg-cinemaRed text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
-                <?= $s['nama_studio'] ?> (<?= $s['capacity'] ?> Kursi)
-            </a>
-        <?php endforeach; ?>
-        <a href="manage_studio.php" class="ml-auto text-sm font-medium text-gray-500 hover:text-cinemaRed">
-            <i class="ph ph-wrench text-lg mr-1"></i> Kelola Studio
-        </a>
+
+<!-- ========================= CONTENT ========================= -->
+<div class="mt-28 p-6">
+
+    <h1 class="text-3xl font-bold mb-6">Kelola Studio</h1>
+
+    <!-- GRID PILIH STUDIO -->
+    <div class="grid grid-cols-3 gap-6 mb-10">
+
+        <a href="studio_admin.php?studio=1" class="studio-btn">REGULAR 2D</a>
+        <a href="studio_admin.php?studio=2" class="studio-btn">DOLBY ATMOS</a>
+        <a href="studio_admin.php?studio=3" class="studio-btn">IMAX</a>
+
     </div>
 
-    <?php if (!$id_studio): ?>
-        <div class="bg-yellow-100 text-yellow-700 p-4 rounded-lg border border-yellow-200 mt-8">
-            <i class="ph ph-info-fill mr-2"></i> Silakan pilih salah satu studio di atas untuk melihat denah kursi.
-        </div>
-    <?php else: ?>
-        <h4 class="text-xl font-semibold mb-6 mt-8">Denah Studio: <?= $studio['nama_studio'] ?></h4>
-        
-        <!-- Legenda Status Kursi -->
-        <div class="flex flex-wrap gap-4 text-xs font-medium text-gray-600 mb-6 p-4 bg-white rounded-xl shadow-sm border">
-            <span class="flex items-center gap-2">
-                <div class="seat reguler"></div> Reguler
-            </span>
-            <span class="flex items-center gap-2">
-                <div class="seat reserved"></div> Reserved (Admin Lock)
-            </span>
-            <span class="flex items-center gap-2">
-                <div class="seat sold"></div> Sold (Terjual)
-            </span>
-        </div>
+    <?php if ($id_studio): ?>
+        <h2 class="text-2xl font-bold mb-4">
+            Layout Studio: <?= $namaStudio[$id_studio] ?>
+        </h2>
 
-        <!-- Layout Kursi -->
-        <div class="bg-white p-6 rounded-xl shadow-xl overflow-x-auto">
-            <div class="text-center mb-6 py-2 screen w-full mx-auto max-w-sm">LAYAR BIOSKOP</div>
-            
-            <div class="flex flex-col items-center">
-                <?php
-                // Logika kursi - HANYA REGULER DENGAN LORONG
-                
-                $kursi_kiri = 4; // Asumsi 4 kursi di kiri
-                $kursi_tengah_start = $kursi_kiri + 1;
-                $kursi_tengah_end = $total_kursi_per_baris;
-                
-                for ($r = 0; $r < $total_baris; $r++) {
-                    $baris_label = $baris_nama[$r];
-                    
-                    echo "<div class='mb-2 text-center flex items-center'>";
-                    echo "<span class='text-gray-400 font-bold mr-2'>{$baris_label}</span>"; // Label Baris
+        <div class="card p-4 bg-white shadow-lg rounded-xl">
 
-                    // Kelompok KIRI
-                    for ($i = 1; $i <= $kursi_kiri; $i++) {
-                        $seat_id = $baris_label.$i;
-                        // Default class 'reguler'. Status sebenarnya harusnya dicek ke DB.
-                        echo "<div class='seat reguler inline-block' data-seat='$seat_id'>$seat_id</div>";
-                    }
-
-                    // Lorong
-                    echo "<span class='lorong'></span>";
-
-                    // Kelompok KANAN/TENGAH
-                    for ($i = $kursi_tengah_start; $i <= $kursi_tengah_end; $i++) {
-                        $seat_id = $baris_label.$i;
-                        echo "<div class='seat reguler inline-block' data-seat='$seat_id'>$seat_id</div>";
-                    }
-                    echo "</div>";
-                }
-                ?>
+            <!-- ===================== LAYAR BIOSKOP ===================== -->
+            <div class="screen">
+                SCREEN
             </div>
-        </div>
-    <?php endif; ?>
-</main>
+            <!-- ========================================================== -->
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-// Fungsi jQuery tetap digunakan untuk interaksi prompt (walaupun alert/prompt tidak disarankan di production)
-$(document).ready(function(){
-    // Hanya tambahkan event listener jika ada studio yang dipilih
-    if ('<?= $id_studio ?>' !== '') {
-        $('.seat').click(function(){
-            let seatDiv = $(this);
-            let seatId = seatDiv.data('seat');
-            
-            // Dapatkan status saat ini untuk pre-fill prompt
-            let currentStatus = 'reguler';
-            if (seatDiv.hasClass('reserved')) currentStatus = 'reserved';
-            else if (seatDiv.hasClass('sold')) currentStatus = 'sold';
-            
-            // Sweetbox dihapus, jadi opsi di sini hanya reguler, reserved, sold
-            let newStatus = prompt(`Ubah status kursi ${seatId} di Studio <?= $studio['nama_studio'] ?> menjadi: (reguler, reserved, sold, empty)`, currentStatus);
-            
-            if(!newStatus || newStatus === currentStatus) return; 
-            
-            newStatus = newStatus.toLowerCase().trim();
-            if(newStatus === 'empty') newStatus = 'reguler'; 
-            
-            // Simulasikan Sukses:
-            // Hapus kelas sweetbox (jika ada, walau seharusnya tidak ada lagi)
-            seatDiv.removeClass('reguler sweetbox reserved sold').addClass(newStatus);
-            alert('Status kursi '+seatId+' berhasil diupdate menjadi '+newStatus + ' (Simulasi)');
-            
-            // KODE ASLI JIKA update_seat.php SUDAH DIBUAT (Sweetbox dihapus dari opsi)
-            // $.post('update_seat.php',{
-            //     studio_id: '<?= $id_studio ?>',
-            //     seat: seatId,
-            //     status: newStatus 
-            // },function(resp){
-            //     if(resp.trim() === 'success'){
-            //         seatDiv.removeClass('reguler reserved sold').addClass(newStatus);
-            //         alert('Status kursi '+seatId+' berhasil diupdate menjadi '+newStatus);
-            //     }else{
-            //         alert('Gagal update seat: '+resp);
-            //     }
-            // });
-        });
-    }
-});
-</script>
+            <!-- SWEETBOX A -->
+            <div class="text-center mb-3">
+            <?php
+            for ($i = 1; $i <= 18; $i += 2) {
+                $s1 = "A$i";
+                $s2 = "A" . ($i + 1);
+                $label = "$s1|$s2";
+                echo "<div class='seat sweetbox'>$label</div>";
+            }
+            ?>
+            </div>
+
+            <!-- KURSI REGULER B–J -->
+            <?php
+            $kursi_kiri = 4;
+
+            for ($r = 1; $r <= 9; $r++) {
+                echo "<div class='mb-2 text-center'>";
+                
+                for ($i = 1; $i <= $kursi_kiri; $i++) {
+                    $sid = $baris_nama[$r] . $i;
+                    echo "<div class='seat reguler'>$sid</div>";
+                }
+
+                echo "<span class='lorong'></span>";
+
+                for ($i = 5; $i <= 19; $i++) {
+                    $sid = $baris_nama[$r] . $i;
+                    echo "<div class='seat reguler'>$sid</div>";
+                }
+
+                echo "</div>";
+            }
+            ?>
+        </div>
+
+    <?php endif; ?>
+
+</div>
 
 </body>
 </html>
