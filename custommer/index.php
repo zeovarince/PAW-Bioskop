@@ -94,7 +94,12 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
             <div class="hidden md:flex space-x-8">
                 <a href="index.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                 <a href="movies.php" class=" text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
-                <a href="schedule.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Schedule</a>
+                <!-- TAMBAHKAN LINK DASHBOARD DI SINI -->
+                <?php if (isset($_SESSION['login'])): ?>
+                    <a href="dashboard.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
+                <?php endif; ?>
+                <!-- END TAMBAHAN -->
+                
                 <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Contact</a>
             </div>
 
@@ -153,7 +158,6 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
                    class="bg-cinemaRed hover:bg-red-700 text-white px-8 py-3.5 rounded-lg font-bold text-lg flex items-center gap-2 shadow-lg shadow-red-900/50 transition transform hover:-translate-y-1">
                     <i class="ph ph-ticket text-xl"></i> Beli Tiket
                 </a>
-                <!-- Tombol Detail Film SUDAH DIHAPUS DI SINI -->
             </div>
         </div>
     </header>
