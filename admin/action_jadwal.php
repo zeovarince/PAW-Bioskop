@@ -1,19 +1,21 @@
 <?php
 session_start();
-// Pastikan user adalah admin
 if (!isset($_SESSION['login']) || $_SESSION['role'] != '1') {
     header("Location: ../login.php");
     exit;
 }
 
 include "../koneksi.php";
-include "../function.php"; // Memuat fungsi CRUD Jadwal
+include "../function.php"; 
 
-// Tentukan aksi berdasarkan input POST atau GET
 $action = $_REQUEST['action'] ?? null;
 
+// GABUNGKAN TANGGAL DAN JAM SEBELUM DIPROSES
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tanggal']) && isset($_POST['jam'])) {
+    $_POST['Waktu_tayang'] = $_POST['tanggal'] . ' ' . $_POST['jam'] . ':00';
+}
+
 if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Aksi: TAMBAH JADWAL BARU (CREATE)
     $result = createSchedule($_POST);
 
     if ($result === true) {
@@ -21,7 +23,13 @@ if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: schedule.php");
         exit;
     } else {
-        // Simpan data form dan error ke session untuk ditampilkan kembali
+        // Pecah kembali tanggal dan jam untuk form jika error
+        if(isset($_POST['Waktu_tayang'])) {
+            $ts = strtotime($_POST['Waktu_tayang']);
+            $_POST['tanggal'] = date('Y-m-d', $ts);
+            $_POST['jam'] = date('H:i', $ts);
+        }
+        
         $_SESSION['form_data'] = $_POST;
         $_SESSION['form_errors'] = $result;
         $_SESSION['message'] = "Gagal: Terdapat kesalahan saat menambah jadwal.";
@@ -30,7 +38,6 @@ if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 } elseif ($action == 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Aksi: PERBARUI JADWAL (UPDATE)
     $id_jadwal = $_POST['id_jadwal'] ?? null;
     
     if (!$id_jadwal) {
@@ -46,19 +53,21 @@ if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: schedule.php");
         exit;
     } else {
-        // Simpan data form dan error ke session untuk ditampilkan kembali
+        if(isset($_POST['Waktu_tayang'])) {
+            $ts = strtotime($_POST['Waktu_tayang']);
+            $_POST['tanggal'] = date('Y-m-d', $ts);
+            $_POST['jam'] = date('H:i', $ts);
+        }
+
         $_SESSION['form_data'] = $_POST;
         $_SESSION['form_errors'] = $result;
         $_SESSION['message'] = "Gagal: Terdapat kesalahan saat memperbarui jadwal.";
-        header("Location: manage_jadwal.php?id=" . $id_jadwal); // Kembali ke halaman edit
+        header("Location: manage_jadwal.php?id=" . $id_jadwal); 
         exit;
     }
 
 } elseif ($action == 'delete' && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
-    // Aksi: HAPUS JADWAL (DELETE)
     $id_jadwal = $_GET['id'];
-    
-    // Ambil data untuk pesan sukses/gagal
     $schedule = getSchedules($id_jadwal);
     $schedule_title = $schedule ? htmlspecialchars($schedule['Judul_Film']) . " di " . htmlspecialchars($schedule['nama_studio']) : "Jadwal";
 
@@ -74,8 +83,7 @@ if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 
 } else {
-    // Jika tidak ada aksi yang valid
-    $_SESSION['message'] = "Gagal: Aksi tidak valid atau metode request salah.";
+    $_SESSION['message'] = "Gagal: Aksi tidak valid.";
     header("Location: schedule.php");
     exit;
 }

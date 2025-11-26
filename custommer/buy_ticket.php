@@ -41,14 +41,15 @@ if (empty($poster_file) || !file_exists($poster_src)) {
     $poster_src = 'https://via.placeholder.com/400x600?text=No+Poster';
 }
 
-// generate tanggal 7 hari, hanya hari ini aktif
+// --- PERBAIKAN LOGIKA TANGGAL DI SINI ---
+// generate tanggal 7 hari ke depan
 $tanggalList = [];
 for ($i = 0; $i < 7; $i++) {
     $ts = strtotime("+$i day");
     $tanggalList[] = [
         'label' => date("d M • l", $ts),
         'value' => date("Y-m-d", $ts),
-        'enabled' => ($i == 0) // hanya hari ini yang aktif
+        'enabled' => true // UBAH KE TRUE AGAR SEMUA TANGGAL BISA DIPILIH
     ];
 }
 ?>
@@ -85,6 +86,11 @@ for ($i = 0; $i < 7; $i++) {
             flex: 1 1 300px;
         }
 
+        /* Style untuk tombol tanggal */
+        .tanggal-btn {
+            transition: all 0.2s;
+        }
+        
         .disabled-date {
             background: #ddd !important;
             color: #888 !important;
@@ -131,9 +137,11 @@ for ($i = 0; $i < 7; $i++) {
 
             <label class="form-label fw-semibold">Jadwal</label>
             <div id="tanggalList" class="mb-2">
-                <?php foreach ($tanggalList as $t): ?>
+                <?php foreach ($tanggalList as $index => $t): ?>
+                    <!-- Tambahkan logika PHP untuk class active-btn pada tanggal pertama -->
                     <button class="btn btn-outline-dark me-2 mb-2 tanggal-btn 
-                    <?php echo $t['enabled'] ? '' : 'disabled-date'; ?>"
+                    <?php echo $t['enabled'] ? '' : 'disabled-date'; ?> 
+                    <?php echo $index === 0 ? 'active-btn' : ''; ?>" 
                         data-date="<?php echo $t['value']; ?>"
                         <?php echo $t['enabled'] ? '' : 'disabled'; ?>>
                         <?php echo $t['label']; ?>
@@ -222,7 +230,7 @@ for ($i = 0; $i < 7; $i++) {
 
             const params = new URLSearchParams({
                 id: '<?php echo $id_safe; ?>',
-                studio: studio, // ← ini yang benar
+                studio: studio, 
                 time: time,
                 date: tanggal,
                 qty: qty,
@@ -230,7 +238,7 @@ for ($i = 0; $i < 7; $i++) {
             });
 
 
-            // MASUK KE STUDIOS.PHP
+            // MASUK KE STUDIOS.PHP (pilih_kursi.php)
             document.getElementById('confirmProceed').href = 'pilih_kursi.php?' + params.toString();
 
             new bootstrap.Modal(document.getElementById('confirmModal')).show();

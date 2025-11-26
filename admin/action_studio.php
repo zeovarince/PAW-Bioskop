@@ -7,76 +7,77 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] != '1') {
 }
 
 include "../koneksi.php";
-include "../function.php"; // Memuat fungsi CRUD Jadwal
+include "../function.php"; // Memuat fungsi CRUD Studio (getStudios, createStudio, updateStudio, deleteStudio)
 
 // Tentukan aksi berdasarkan input POST atau GET
 $action = $_REQUEST['action'] ?? null;
 
 if ($action == 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Aksi: TAMBAH JADWAL BARU (CREATE)
-    $result = createSchedule($_POST);
+    // Aksi: TAMBAH STUDIO BARU (CREATE)
+    $result = createStudio($_POST);
 
     if ($result === true) {
-        $_SESSION['message'] = "Sukses: Jadwal baru berhasil ditambahkan.";
-        header("Location: schedule.php");
+        $_SESSION['message'] = "Sukses: Studio **" . htmlspecialchars($_POST['nama_studio']) . "** berhasil ditambahkan.";
+        header("Location: manage_studio.php");
         exit;
     } else {
         // Simpan data form dan error ke session untuk ditampilkan kembali
         $_SESSION['form_data'] = $_POST;
         $_SESSION['form_errors'] = $result;
-        $_SESSION['message'] = "Gagal: Terdapat kesalahan saat menambah jadwal.";
-        header("Location: manage_jadwal.php");
+        $_SESSION['message'] = "Gagal: Terdapat kesalahan saat menambah studio.";
+        header("Location: manage_studio.php");
         exit;
     }
 
 } elseif ($action == 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Aksi: PERBARUI JADWAL (UPDATE)
-    $id_jadwal = $_POST['id_jadwal'] ?? null;
+    // Aksi: PERBARUI STUDIO (UPDATE)
+    $id_studio = $_POST['id_studio'] ?? null;
     
-    if (!$id_jadwal) {
-        $_SESSION['message'] = "Gagal: ID Jadwal tidak ditemukan.";
-        header("Location: schedule.php");
+    if (!$id_studio) {
+        $_SESSION['message'] = "Gagal: ID Studio tidak ditemukan.";
+        header("Location: manage_studio.php");
         exit;
     }
 
-    $result = updateSchedule($id_jadwal, $_POST);
+    $result = updateStudio($id_studio, $_POST);
 
     if ($result === true) {
-        $_SESSION['message'] = "Sukses: Jadwal berhasil diperbarui.";
-        header("Location: schedule.php");
+        $_SESSION['message'] = "Sukses: Studio **" . htmlspecialchars($_POST['nama_studio']) . "** berhasil diperbarui.";
+        header("Location: manage_studio.php");
         exit;
     } else {
         // Simpan data form dan error ke session untuk ditampilkan kembali
         $_SESSION['form_data'] = $_POST;
         $_SESSION['form_errors'] = $result;
-        $_SESSION['message'] = "Gagal: Terdapat kesalahan saat memperbarui jadwal.";
-        header("Location: manage_jadwal.php?id=" . $id_jadwal); // Kembali ke halaman edit
+        $_SESSION['message'] = "Gagal: Terdapat kesalahan saat memperbarui studio.";
+        header("Location: manage_studio.php?id=" . $id_studio); // Kembali ke halaman edit
         exit;
     }
 
 } elseif ($action == 'delete' && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
-    // Aksi: HAPUS JADWAL (DELETE)
-    $id_jadwal = $_GET['id'];
+    // Aksi: HAPUS STUDIO (DELETE)
+    $id_studio = $_GET['id'];
     
-    // Ambil data untuk pesan sukses/gagal
-    $schedule = getSchedules($id_jadwal);
-    $schedule_title = $schedule ? htmlspecialchars($schedule['Judul_Film']) . " di " . htmlspecialchars($schedule['nama_studio']) : "Jadwal";
+    // Ambil nama studio untuk pesan sukses/gagal
+    $studio = getStudios($id_studio);
+    $studio_name = $studio ? htmlspecialchars($studio['nama_studio']) : "Studio";
 
-    $result = deleteSchedule($id_jadwal);
+    $result = deleteStudio($id_studio);
 
     if ($result === true) {
-        $_SESSION['message'] = "Sukses: Jadwal **" . $schedule_title . "** berhasil dihapus.";
+        $_SESSION['message'] = "Sukses: Studio **" . $studio_name . "** berhasil dihapus.";
     } else {
-        $_SESSION['message'] = "Gagal: Jadwal **" . $schedule_title . "** tidak dapat dihapus. " . ($result['general'] ?? '');
+        // Pesan error dari deleteStudio sudah mencakup pengecekan jadwal terkait
+        $_SESSION['message'] = "Gagal: Studio **" . $studio_name . "** tidak dapat dihapus. " . ($result['general'] ?? 'Kesalahan tidak diketahui.');
     }
 
-    header("Location: schedule.php");
+    header("Location: manage_studio.php");
     exit;
 
 } else {
     // Jika tidak ada aksi yang valid
     $_SESSION['message'] = "Gagal: Aksi tidak valid atau metode request salah.";
-    header("Location: schedule.php");
+    header("Location: manage_studio.php");
     exit;
 }
 ?>
