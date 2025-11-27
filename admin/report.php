@@ -99,6 +99,7 @@ $result_transaksi = mysqli_query($conn, $query_transaksi);
                     <div class="ml-10 flex items-baseline space-x-4">
                         <a href="index.php" class="text-white hover:text-cinemaRed px-3 py-2 text-l rounded-md text-sm font-medium transition">Dashboard</a>
                         <a href="movies.php" class="text-white hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
+                        <a href="studio_admin.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Studio</a>
                         <a href="schedule.php" class="text-white hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Schedules</a>
                         <a href="validation.php" class="text-white hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">
                             Validation
