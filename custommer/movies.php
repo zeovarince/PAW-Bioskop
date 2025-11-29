@@ -74,6 +74,7 @@ tailwind.config = {
                 <a href="index.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                 <a href="movies.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
                 <a href="schedule.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Schedule</a>
+                <a href="dashboard.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
                 <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Contact</a>
             </div>
         </div>

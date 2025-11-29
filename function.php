@@ -243,4 +243,54 @@ function deleteSchedule($id) {
     
     return mysqli_query($conn, "DELETE FROM jadwal WHERE Id_jadwal='$id'") ? true : ["general" => "Gagal hapus."];
 }
+
+function saveReview($data) {
+    global $conn;
+    $id_user = (int)($data['Id_user'] ?? 0);
+    $id_movie = (int)($data['Id_movie'] ?? 0);
+    $rating = (int)($data['rating'] ?? 0);
+    $komentar = esc($data['komentar'] ?? '');
+    
+    // Validasi
+    if ($id_user <= 0 || $id_movie <= 0) {
+        return ["general" => "ID Pengguna atau Film tidak valid."];
+    }
+    if ($rating < 1 || $rating > 5) {
+        return ["rating" => "Rating harus antara 1 sampai 5."];
+    }
+    
+    // Cek apakah user sudah pernah review film ini
+    $cek_review = mysqli_query($conn, "SELECT Id_reviews FROM reviews WHERE Id_user='$id_user' AND Id_movie='$id_movie'");
+    if (mysqli_num_rows($cek_review) > 0) {
+        return ["general" => "Anda sudah memberikan review untuk film ini."];
+    }
+
+    // Query INSERT
+    $query = "INSERT INTO reviews (Id_user, Id_movie, rating, komentar) 
+              VALUES ('$id_user', '$id_movie', '$rating', '$komentar')";
+    
+    if (mysqli_query($conn, $query)) {
+        return true;
+    } else {
+        return ["general" => "Gagal menyimpan review: " . mysqli_error($conn)];
+    }
+}
+
+/**
+ * Mendapatkan rata-rata rating dan jumlah review untuk suatu film.
+ * @param int $id_movie ID Film.
+ * @return array Rata-rata rating dan total review.
+ */
+function getAverageRating($id_movie) {
+    global $conn;
+    $id_movie = (int)$id_movie;
+    $query = "SELECT AVG(rating) as avg_rating, COUNT(Id_reviews) as total_reviews FROM reviews WHERE Id_movie = '$id_movie'";
+    $result = mysqli_query($conn, $query);
+    $data = mysqli_fetch_assoc($result);
+    
+    return [
+        'average' => round($data['avg_rating'] ?? 0, 1),
+        'count' => (int)($data['total_reviews'] ?? 0)
+    ];
+}
 ?>
