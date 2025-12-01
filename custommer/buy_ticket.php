@@ -3,7 +3,10 @@ session_start(); // Ditambahkan: Memastikan session dimulai
 include "../koneksi.php";
 include "../function.php"; // Ditambahkan: Memuat fungsi getStudios() dan getAverageRating()
 
-// cek jika id film ada
+// Cek status login
+$is_logged_in = isset($_SESSION['login']);
+
+// Cek jika id film ada
 if (!isset($_GET['id'])) {
     header("Location: movies.php");
     exit;
@@ -132,55 +135,65 @@ body { background: #f5f5f5; }
 
     <div class="ticket-card mt-3 p-3 bg-white rounded">
         <h5 class="fw-bold">Buy Ticket</h5>
+        
+        <?php if (!$is_logged_in): ?>
+            <!-- JIKA BELUM LOGIN, TAMPILKAN TOMBOL LOGIN -->
+            <div class="alert alert-warning text-center fw-bold">
+                Anda harus login untuk melanjutkan pemesanan tiket.
+            </div>
+            <a href="../login.php" class="btn btn-danger w-100 mt-3 fw-bold">
+                Login / Daftar Sekarang
+            </a>
+        <?php else: ?>
+            <!-- JIKA SUDAH LOGIN, TAMPILKAN FORM -->
+            <!-- Form Validation -->
+            <form id="bookingForm" action="buy_ticket.php?action=validate" method="POST">
+                <input type="hidden" name="movie_id" value="<?= $id_safe ?>">
 
-        <!-- Form Validation -->
-        <form id="bookingForm" action="buy_ticket.php?action=validate" method="POST">
-            <input type="hidden" name="movie_id" value="<?= $id_safe ?>">
+                <label class="form-label fw-semibold">Pilih Studio</label>
+                <select class="form-select mb-2" id="studio" name="studio_id" required>
+                    <?php if (empty($studios_db)): ?>
+                        <option value="" disabled selected>-- Tidak ada Studio Aktif --</option>
+                    <?php else: ?>
+                        <?php foreach ($studios_db as $s): ?>
+                            <option value="<?= $s['Id_studio'] ?>" data-name="<?= htmlspecialchars($s['nama_studio']) ?>">
+                                <?= htmlspecialchars($s['nama_studio']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
 
-            <label class="form-label fw-semibold">Pilih Studio</label>
-            <select class="form-select mb-2" id="studio" name="studio_id" required>
-                <?php if (empty($studios_db)): ?>
-                    <option value="" disabled selected>-- Tidak ada Studio Aktif --</option>
-                <?php else: ?>
-                    <?php foreach ($studios_db as $s): ?>
-                        <option value="<?= $s['Id_studio'] ?>" data-name="<?= htmlspecialchars($s['nama_studio']) ?>">
-                            <?= htmlspecialchars($s['nama_studio']) ?>
-                        </option>
+
+                <label class="form-label fw-semibold">Jadwal</label>
+                <div id="tanggalList" class="mb-2">
+                    <?php foreach ($tanggalList as $index => $t): ?>
+                        <button type="button" class="btn btn-outline-dark me-2 mb-2 tanggal-btn 
+                        <?php echo $t['enabled'] ? '' : 'disabled-date'; ?>
+                        <?php echo $index === 0 ? 'active-btn' : ''; ?>" 
+                            data-date="<?php echo $t['value']; ?>"
+                            <?php echo $t['enabled'] ? '' : 'disabled'; ?>>
+                            <?php echo $t['label']; ?>
+                        </button>
                     <?php endforeach; ?>
-                <?php endif; ?>
-            </select>
+                     <input type="hidden" name="date" id="selected_date" value="<?= $tanggalList[0]['value'] ?? '' ?>">
+                </div>
 
+                <label class="form-label fw-semibold">Jam Tayang</label>
+                <div id="showtimes" class="mb-2 d-flex flex-wrap gap-2">
+                    <?php foreach ($showtimes as $time): ?>
+                        <button type="button" class="btn btn-outline-dark me-2 mb-2 showtime-btn" data-time="<?php echo $time; ?>">
+                            <?php echo $time; ?>
+                        </button>
+                    <?php endforeach; ?>
+                    <input type="hidden" name="time" id="selected_time">
+                </div>
 
-            <label class="form-label fw-semibold">Jadwal</label>
-            <div id="tanggalList" class="mb-2">
-                <?php foreach ($tanggalList as $index => $t): ?>
-                    <button type="button" class="btn btn-outline-dark me-2 mb-2 tanggal-btn 
-                    <?php echo $t['enabled'] ? '' : 'disabled-date'; ?>
-                    <?php echo $index === 0 ? 'active-btn' : ''; ?>" 
-                        data-date="<?php echo $t['value']; ?>"
-                        <?php echo $t['enabled'] ? '' : 'disabled'; ?>>
-                        <?php echo $t['label']; ?>
-                    </button>
-                <?php endforeach; ?>
-                 <input type="hidden" name="date" id="selected_date" value="<?= $tanggalList[0]['value'] ?? '' ?>">
-            </div>
+                <label class="form-label fw-semibold">Jumlah Tiket</label>
+                <input id="qty" name="qty" type="number" min="1" value="1" class="form-control mb-2" required>
 
-            <label class="form-label fw-semibold">Jam Tayang</label>
-            <div id="showtimes" class="mb-2 d-flex flex-wrap gap-2">
-                <?php foreach ($showtimes as $time): ?>
-                    <button type="button" class="btn btn-outline-dark me-2 mb-2 showtime-btn" data-time="<?php echo $time; ?>">
-                        <?php echo $time; ?>
-                    </button>
-                <?php endforeach; ?>
-                <input type="hidden" name="time" id="selected_time">
-            </div>
-
-            <label class="form-label fw-semibold">Jumlah Tiket</label>
-            <input id="qty" name="qty" type="number" min="1" value="1" class="form-control mb-2" required>
-
-            <button type="submit" id="buyNowBtn" class="btn btn-danger w-100 mt-3">Buy Ticket</button>
-        </form>
-
+                <button type="submit" id="buyNowBtn" class="btn btn-danger w-100 mt-3">Buy Ticket</button>
+            </form>
+        <?php endif; ?>
     </div>
 
 </div>
@@ -240,32 +253,35 @@ body { background: #f5f5f5; }
     });
 
     // 4. Form Submission (Triggered by Buy Ticket button click)
-    bookingForm.addEventListener('submit', function(e) {
-        e.preventDefault(); 
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
 
-        // Ambil data terpilih untuk ditampilkan di Modal
-        const studioName = studioSelect.options[studioSelect.selectedIndex]?.dataset.name || 'N/A';
-        
-        const selectedDate = document.getElementById('selected_date').value;
-        const selectedTime = document.getElementById('selected_time').value;
-        const qty = document.getElementById('qty').value;
-        
-        // Validasi Dasar
-        if (!selectedDate || !selectedTime || !studioSelect.value || qty < 1) {
-            alert("Mohon lengkapi pilihan tanggal, jam, studio, dan jumlah tiket.");
-            return;
-        }
+            // Ambil data terpilih untuk ditampilkan di Modal
+            const studioName = studioSelect.options[studioSelect.selectedIndex]?.dataset.name || 'N/A';
+            
+            const selectedDate = document.getElementById('selected_date').value;
+            const selectedTime = document.getElementById('selected_time').value;
+            const qty = document.getElementById('qty').value;
+            
+            // Validasi Dasar
+            if (!selectedDate || !selectedTime || !studioSelect.value || qty < 1) {
+                alert("Mohon lengkapi pilihan tanggal, jam, studio, dan jumlah tiket.");
+                return;
+            }
 
-        // Tampilkan Modal Konfirmasi
-        document.getElementById('confirmText').innerText =
-            `Film: <?php echo addslashes($judul); ?>\nTanggal: ${tanggalBtn.innerText.trim()}\nJam: ${selectedTime}\nStudio: ${studioName}\nJumlah: ${qty}\n\nLanjutkan ke pemilihan kursi?`;
+            // Tampilkan Modal Konfirmasi
+            const tanggalBtn = document.querySelector('.tanggal-btn.active-btn');
+            document.getElementById('confirmText').innerText =
+                `Film: <?php echo addslashes($judul); ?>\nTanggal: ${tanggalBtn.innerText.trim()}\nJam: ${selectedTime}\nStudio: ${studioName}\nJumlah: ${qty}\n\nLanjutkan ke pemilihan kursi?`;
 
-        const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-        confirmModal.show();
-    });
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmModal.show();
+        });
+    }
 
     // 5. Konfirmasi Lanjut ke Pilih Kursi
-    document.getElementById('confirmProceed').addEventListener('click', function() {
+    document.getElementById('confirmProceed')?.addEventListener('click', function() {
         // Setelah konfirmasi, set action form ke validate dan submit
         bookingForm.submit(); 
     });
