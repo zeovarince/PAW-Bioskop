@@ -56,30 +56,46 @@ $result_history = mysqli_query($conn, $query_history);
 <body class="bg-gray-100 font-sans text-gray-800">
 
     <!-- Navigasi Customer -->
-    <nav class="bg-cinemaBlack border-b border-gray-800 py-4">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <img src="../logo.png" alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
-                <a href="index.php">
-                     <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
-                        ONIC <span class="text-white">CINEMA</span>
-                    </h1>
-                </a>
+<nav class="bg-cinemaBlack border-b border-gray-800 py-4">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <img src="../logo.png" alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
+            <a href="index.php">
+                <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
+                    ONIC <span class="text-white">CINEMA</span>
+                </h1>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-8">
+            <a href="index.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">
+                Home
+            </a>
+
+            <a href="movies.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">
+                Movies
+            </a>
+            <a href="dashboard.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-bold transition shadow-lg shadow-yellow-500/10">
+                Dashboard
+            </a>
+
+            <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">
+                Contact
+            </a>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-sm font-bold text-white">Halo, <?= $_SESSION['username'] ?></p>
+                <p class="text-xs text-cinemaGold">Member</p>
             </div>
 
-            <div class="flex items-center gap-4">
-                 <a href="dashboard.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
-                 <a href="movies.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition hidden md:block">Movies</a>
-                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-white">Halo, <?= $_SESSION['username'] ?></p>
-                    <p class="text-xs text-cinemaGold">Member</p>
-                </div>
-                <a href="../logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
-                    <i class="ph ph-sign-out text-xl"></i>
-                </a>
-            </div>
+            <a href="../logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
+                <i class="ph ph-sign-out text-xl"></i>
+            </a>
         </div>
-    </nav>
+
+    </div>
+</nav>
+
     <!-- End Navigasi -->
     
     <div class="max-w-7xl mx-auto px-6 py-10">
