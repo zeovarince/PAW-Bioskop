@@ -1,7 +1,11 @@
 <?php
 session_start();
 include '../koneksi.php';
-// test contributor
+include '../function.php'; // Memuat fungsi getAverageRating()
+
+// Cek status login
+$is_logged_in = isset($_SESSION['login']);
+
 function safe($row, $keys, $default = '')
 {
     if (!is_array($keys)) $keys = [$keys];
@@ -19,7 +23,8 @@ function poster_src($filename)
     return 'https://via.placeholder.com/300x450?text=No+Poster';
 }
 
-$sql = "SELECT * FROM movies ORDER BY id_movie DESC";
+// 1. Ambil semua data film
+$sql = "SELECT * FROM movies ORDER BY release_date DESC";
 $res = mysqli_query($conn, $sql);
 if ($res === false) die("Query Error: " . mysqli_error($conn));
 
@@ -28,6 +33,11 @@ $now_showing = [];
 $coming_soon = [];
 
 while ($row = mysqli_fetch_assoc($res)) {
+    // Ambil data rating (asumsi getAverageRating tersedia di function.php)
+    $rating_data = getAverageRating($row['Id_movie']);
+    $row['avg_rating'] = $rating_data['average'];
+    $row['review_count'] = $rating_data['count'];
+
     $release_date = safe($row, ['release_date', 'Release_date', 'rilis'], '');
     if ($release_date !== '' && $release_date > $today) {
         $coming_soon[] = $row;
@@ -81,7 +91,7 @@ while ($row = mysqli_fetch_assoc($res)) {
             <div class="hidden md:flex space-x-8">
                 <a href="index.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                 <a href="movies.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition shadow-lg shadow-yellow-500/20">Movies</a>
-                <?php if (isset($_SESSION['login'])): ?>
+                <?php if ($is_logged_in): ?>
                     <a href="dashboard.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
                 <?php endif; ?>                
                 <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Contact</a>
@@ -89,16 +99,16 @@ while ($row = mysqli_fetch_assoc($res)) {
 
             <!-- Menu Kanan (User Profile / Login) -->
             <div class="flex items-center gap-4">
-                <?php if (isset($_SESSION['login'])): ?>
+                <?php if ($is_logged_in): ?>
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold text-white">Halo, <?= $_SESSION['username'] ?></p>
                         <p class="text-xs text-cinemaGold">Member</p>
                     </div>
-                    <a href="logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
+                    <a href="../logout.php" class="bg-gray-800 hover:bg-cinemaRed text-white p-2 rounded-full transition" title="Logout">
                         <i class="ph ph-sign-out text-xl"></i>
                     </a>
                 <?php else: ?>
-                    <a href="login.php" class="bg-cinemaRed hover:bg-red-700 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-lg shadow-red-900/20">
+                    <a href="../login.php" class="bg-cinemaRed hover:bg-red-700 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-lg shadow-red-900/20">
                         Masuk / Daftar
                     </a>
                 <?php endif; ?>
@@ -109,8 +119,9 @@ while ($row = mysqli_fetch_assoc($res)) {
     <div class="max-w-7xl mx-auto px-6 py-10">
 
         <h2 class="text-3xl font-bold mb-2 flex items-center gap-2">
-            <i class="ph ph-film-strip text-cinemaRed"></i> Movies
+            <i class="ph ph-film-strip text-cinemaRed"></i> Sedang Tayang
         </h2>
+        <p class="text-gray-500 mb-8">Pilih film favorit Anda untuk melihat jadwal dan membeli tiket.</p>
 
         <!-- NOW SHOWING -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -120,30 +131,58 @@ while ($row = mysqli_fetch_assoc($res)) {
                     $id = safe($movie, ['id_movie', 'Id_movie', 'id', 'movie_id'], '');
                     $judul = htmlspecialchars(safe($movie, 'judul', '-'));
                     $poster = safe($movie, 'poster', '');
-                    $duration = (int) safe($movie, 'duration', 0);
                     $poster_url = poster_src($poster);
+                    $avg_rating = $movie['avg_rating'];
+                    $review_count = $movie['review_count'];
                     ?>
-                    <div class="movie-card bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100 group">
+                    <div class="movie-card bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200 group">
+                        
+                        <!-- Poster dan Rating -->
                         <div class="relative">
-                            <?php if ($id !== ''): ?>
-                                <a href="buy_ticket.php?id=<?php echo urlencode($id); ?>">
-                                    <img src="<?php echo $poster_url; ?>" class="w-full h-64 object-cover group-hover:scale-105 transition duration-500">
-                                </a>
-                            <?php else: ?>
-                                <img src="<?php echo $poster_url; ?>" class="w-full h-64 object-cover">
-                            <?php endif; ?>
+                            <img src="<?php echo $poster_url; ?>" class="w-full h-64 object-cover group-hover:scale-105 transition duration-500">
+                            
+                            <!-- Rating Display -->
+                            <div class="absolute top-2 right-2 bg-cinemaBlack/80 text-cinemaGold text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-md">
+                                <i class="ph ph-star-fill text-sm"></i> 
+                                <span><?= $avg_rating ?></span>
+                                <span class="text-gray-400 font-medium ml-1"> (<?= $review_count ?>)</span>
+                            </div>
+
+                            <!-- Overlay Beli Tiket -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-center items-center">
+                                <?php if ($id !== ''): ?>
+                                    <a href="buy_ticket.php?id=<?php echo urlencode($id); ?>"
+                                        class="bg-cinemaRed hover:bg-red-700 text-white px-6 py-2 rounded-full font-bold text-sm flex items-center gap-2 transition transform translate-y-4 group-hover:translate-y-0 shadow-lg">
+                                        <i class="ph ph-ticket text-lg"></i> Beli Tiket
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
+                        <!-- Info Film -->
                         <div class="p-4">
                             <h4 class="font-bold text-gray-800 text-lg truncate"><?php echo $judul; ?></h4>
+                            <div class="flex justify-between items-center text-xs text-gray-500 mt-2">
+                                <span>Durasi: <?= safe($movie, 'duration', 0) ?> Menit</span>
+                                <span class="border border-gray-400 px-1 rounded"><?= safe($movie, 'age_rating', 'SU') ?></span>
+                            </div>
 
+                            <!-- Link Login/Beli Tiket -->
                             <?php if ($id !== ''): ?>
-                                <a href="buy_ticket.php?id=<?php echo urlencode($id); ?>"
-                                    class="mt-4 block w-full text-center bg-cinemaRed hover:bg-red-700 text-white py-2 rounded-lg text-sm font-semibold transition">
-                                    Buy Ticket
-                                </a>
+                                <?php if ($is_logged_in): ?>
+                                    <a href="buy_ticket.php?id=<?php echo urlencode($id); ?>"
+                                        class="mt-4 block w-full text-center bg-cinemaRed hover:bg-red-700 text-white py-2 rounded-lg text-sm font-semibold transition">
+                                        Beli Tiket
+                                    </a>
+                                <?php else: ?>
+                                    <!-- Arahkan ke Login jika belum login -->
+                                    <a href="../login.php"
+                                        class="mt-4 block w-full text-center bg-cinemaGold hover:bg-yellow-600 text-black py-2 rounded-lg text-sm font-semibold transition">
+                                        Login untuk Beli
+                                    </a>
+                                <?php endif; ?>
                             <?php else: ?>
-                                <button class="mt-4 w-full bg-gray-400 text-white py-2 rounded-lg text-sm font-semibold" disabled>
+                                <button class="mt-4 w-full bg-gray-400 text-white py-2 rounded-lg text-sm font-semibold cursor-not-allowed" disabled>
                                     Tidak tersedia
                                 </button>
                             <?php endif; ?>
@@ -162,7 +201,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 
         <!-- COMING SOON -->
         <h2 class="text-3xl font-bold mt-12 mb-2 flex items-center gap-2">
-            <i class="ph ph-hourglass-medium text-cinemaGold"></i> Coming Soon
+            <i class="ph ph-hourglass-medium text-cinemaGold"></i> Segera Tayang
         </h2>
         <p class="text-gray-500 mb-8">Film yang akan tayang — belum bisa dibeli sekarang.</p>
 
