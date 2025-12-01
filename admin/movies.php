@@ -115,9 +115,6 @@ $movie_count = count($movies);
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/12">
-                                    ID
-                                </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-2/12">
                                     Poster
                                 </th>
@@ -136,9 +133,6 @@ $movie_count = count($movies);
                             <?php if ($movie_count > 0): ?>
                                 <?php foreach ($movies as $movie): ?>
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            <?= $movie['Id_movie'] ?>
-                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <img src="../assets/images/<?= $movie['poster'] ?>" alt="Poster" class="w-16 h-24 object-cover rounded-md shadow-md">
                                         </td>

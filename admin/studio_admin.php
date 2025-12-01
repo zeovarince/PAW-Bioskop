@@ -5,7 +5,7 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] != '1') {
     exit;
 }
 
-// Dummy seat (tanpa database)
+// Dummy seat (tanpa database) - Nanti bisa diganti database
 $bookedSeats = [];
 
 // Baris kursi
@@ -18,6 +18,16 @@ $namaStudio = [
     2 => "DOLBY ATMOS",
     3 => "IMAX"
 ];
+
+// Hitung Total Pending (Untuk Badge Navbar)
+$total_pending = 0; 
+if (file_exists("../koneksi.php")) {
+    include "../koneksi.php";
+    $pending = mysqli_query($conn, "SELECT COUNT(*) as total FROM booking WHERE status_booking = '2'");
+    if ($pending) {
+        $total_pending = mysqli_fetch_assoc($pending)['total'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,6 +53,8 @@ tailwind.config = {
     }
 }
 </script>
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
     body { margin: 0; padding: 0; }
@@ -60,9 +72,8 @@ tailwind.config = {
 
     /* Header glass */
     .glass-nav {
-        background: rgba(20, 20, 20, 0.85);
+        background: rgba(20, 20, 20, 0.9);
         backdrop-filter: blur(10px);
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
     }
 
     /* Glow animasi */
@@ -79,168 +90,165 @@ tailwind.config = {
     .studio-btn {
         padding:1.4rem; border-radius:1rem; background:#FFD700;
         font-weight:bold; text-align:center; transition:0.2s; font-size:1.2rem;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        color: black;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .studio-btn:hover { background:#e6c300; transform:scale(1.03); }
+    .studio-btn:hover { background:#e6c300; transform:scale(1.02); }
 
     /* LAYAR BIOSKOP */
     .screen {
         width: 90%;
         height: 50px;
-        margin: 0 auto 25px auto;
+        margin: 0 auto 40px auto;
         background: linear-gradient(to bottom, #ffffff, #d9d9d9);
-        border-radius: 0 0 30px 30px;
-        box-shadow: 0 0 25px rgba(255,255,255,0.7);
+        border-radius: 0 0 50px 50px;
+        box-shadow: 0 10px 30px rgba(255,255,255,0.5);
         text-align: center;
         font-weight: bold;
-        font-size: 20px;
+        font-size: 14px;
         padding-top: 10px;
-        color: #333;
-        letter-spacing: 2px;
+        color: #999;
+        letter-spacing: 5px;
+        transform: perspective(500px) rotateX(-5deg);
     }
 </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
 
-<!-- ========================= HEADER ========================= -->
-<nav class="glass-nav fixed top-0 left-0 w-full z-50">
+<!-- ========================= NAVBAR ADMIN ========================= -->
+<nav class="glass-nav fixed w-full z-50 bg-cinemaBlack border-b border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
             
-            <!-- LOGO + TITLE -->
+            <!-- Logo -->
             <div class="flex items-center gap-4">
-                <img src="../logo.png" class="h-12 w-auto object-contain">
+                <img src="../logo.png" alt="Onic Logo" class="h-11 w-auto object-contain drop-shadow-lg">
                 
-                <h1 class="text-3xl font-bold tracking-widest uppercase">
-                    <span class="text-cinemaGold glow">ONIC</span>
-                    <span class="text-white glow">ADMINISTRATOR</span>
+                <h1 class="text-3xl font-bold text-cinemaGold tracking-widest uppercase" style="text-shadow: 0px 0px 7px;">
+                    ONIC <span class="text-white">ADMINISTRATOR</span>
                 </h1>
             </div>
 
-            <!-- MENU -->
-            <div class="hidden md:flex items-center space-x-6 text-[15px]">
-
-                <a href="index.php"
-                   class="px-4 py-2 rounded-full
-                   <?= basename($_SERVER['PHP_SELF'])=='index.php' ? 'bg-cinemaGold text-black' : 'text-gray-300 hover:text-cinemaRed' ?>">
-                   Dashboard
-                </a>
-
-                <a href="movies.php"
-                   class="font-medium 
-                   <?= basename($_SERVER['PHP_SELF'])=='movies.php' ? 'text-red-500' : 'text-gray-300 hover:text-red-500' ?>">
-                   Movies
-                </a>
-
-                <a href="studio_admin.php"
-                   class="px-4 py-2 rounded-full
-                   <?= basename($_SERVER['PHP_SELF'])=='studio_admin.php' ? 'bg-cinemaGold text-black' : 'text-gray-300 hover:text-cinemaRed' ?>">
-                   Studio
-                </a>
-
-                <a href="schedule.php"
-                   class="text-gray-300 hover:text-cinemaRed">
-                   Schedules
-                </a>
-
-                <a href="validation.php"
-                   class="text-gray-300 hover:text-cinemaRed">
-                   Validation
-                </a>
-
-                <a href="report.php"
-                   class="text-gray-300 hover:text-cinemaRed">
-                   Report
-                </a>
-
-                <!-- ADMIN INFO -->
-                <div class="flex items-center gap-3 pl-6 border-l border-gray-700">
-
-                    <div class="leading-tight text-right">
-                        <div class="font-bold text-white text-[15px]">
-                            <?= $_SESSION['username'] ?? 'adminPAW' ?>
-                        </div>
-                        <div class="text-sm text-gray-400 -mt-1">
-                            Administrator
-                        </div>
-                    </div>
-
-                    <a href="../logout.php" 
-                       class="text-gray-300 text-xl font-bold hover:text-cinemaRed transition">
-                        ➜
+            <!-- Menu Tengah -->
+            <div class="hidden md:block">
+                <div class="ml-10 flex items-baseline space-x-4">
+                    
+                    <a href="index.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
+                    <a href="movies.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
+                    <a href="studio_admin.php" class="bg-cinemaGold text-black px-3 py-2 rounded-full text-sm font-bold transition shadow-lg">Studio</a>
+                    <a href="schedule.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Schedules</a>
+                    <a href="validation.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition flex items-center gap-1">
+                        Validation
+                        <?php if($total_pending > 0): ?>
+                            <span class="ml-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full animate-pulse"><?= $total_pending ?></span>
+                        <?php endif; ?>
                     </a>
+                    <a href="report.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Report</a>
                 </div>
+            </div>
 
+            <!-- Menu Kanan (Profile) -->
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-white text-sm font-bold"><?= isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin' ?></span>
+                    <span class="text-gray-400 text-xs">Administrator</span>
+                </div>
+                <a href="../logout.php" onclick="return confirm('Yakin ingin logout?')" class="text-gray-400 hover:text-white transition" title="Logout">
+                    <i class="ph ph-sign-out text-2xl"></i>
+                </a>
             </div>
         </div>
     </div>
 </nav>
 
 
-
 <!-- ========================= CONTENT ========================= -->
-<div class="mt-28 p-6">
+<div class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
-    <h1 class="text-3xl font-bold mb-6">Kelola Studio</h1>
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <i class="ph ph-armchair text-cinemaRed"></i> Kelola Layout Studio
+            </h1>
+            <p class="text-gray-500 mt-1">Lihat dan atur konfigurasi kursi untuk setiap studio.</p>
+        </div>
+    </div>
 
-    <!-- GRID PILIH STUDIO -->
-    <div class="grid grid-cols-3 gap-6 mb-10">
-
-        <a href="studio_admin.php?studio=1" class="studio-btn">REGULAR 2D</a>
-        <a href="studio_admin.php?studio=2" class="studio-btn">DOLBY ATMOS</a>
-        <a href="studio_admin.php?studio=3" class="studio-btn">IMAX</a>
-
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <a href="studio_admin.php?studio=1" class="studio-btn <?= $id_studio == 1 ? 'ring-4 ring-cinemaRed' : '' ?>">
+            <i class="ph ph-film-strip text-2xl"></i> 
+            <span>REGULAR 2D</span>
+        </a>
+        <a href="studio_admin.php?studio=2" class="studio-btn <?= $id_studio == 2 ? 'ring-4 ring-cinemaRed' : '' ?>">
+            <i class="ph ph-speaker-high text-2xl"></i> 
+            <span>DOLBY ATMOS</span>
+        </a>
+        <a href="studio_admin.php?studio=3" class="studio-btn <?= $id_studio == 3 ? 'ring-4 ring-cinemaRed' : '' ?>">
+            <i class="ph ph-monitor-play text-2xl"></i> 
+            <span>IMAX</span>
+        </a>
     </div>
 
     <?php if ($id_studio): ?>
-        <h2 class="text-2xl font-bold mb-4">
-            Layout Studio: <?= $namaStudio[$id_studio] ?>
-        </h2>
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+            
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800">
+                    Layout: <span class="text-cinemaRed"><?= $namaStudio[$id_studio] ?></span>
+                </h2>
+                <div class="flex gap-4 text-sm">
+                    <span class="flex items-center gap-1"><div class="w-4 h-4 bg-[#222] rounded"></div> Reguler</span>
+                    <span class="flex items-center gap-1"><div class="w-4 h-4 bg-[#ff69b4] rounded"></div> Sweetbox</span>
+                </div>
+            </div>
 
-        <div class="card p-4 bg-white shadow-lg rounded-xl">
-
-            <!-- ===================== LAYAR BIOSKOP ===================== -->
             <div class="screen">
-                SCREEN
+                LAYAR BIOSKOP
             </div>
-            <!-- ========================================================== -->
+            <div class="flex flex-col items-center">
+                <div class="mb-6 flex gap-2 justify-center">
+                <?php
+                for ($i = 1; $i <= 18; $i += 2) {
+                    $s1 = "A$i";
+                    $s2 = "A" . ($i + 1);
+                    $label = "$s1|$s2";
+                    echo "<div class='seat sweetbox' title='Sweetbox $label'>$label</div>";
+                }
+                ?>
+                </div>
+                <?php
+                $kursi_kiri = 4;
+                for ($r = 1; $r <= 9; $r++) {
+                    echo "<div class='mb-2 flex justify-center'>";
+                    for ($i = 1; $i <= $kursi_kiri; $i++) {
+                        $sid = $baris_nama[$r] . $i;
+                        echo "<div class='seat reguler'>$sid</div>";
+                    }
+                    echo "<span class='lorong'></span>";
+                    for ($i = 5; $i <= 19; $i++) {
+                        $sid = $baris_nama[$r] . $i;
+                        echo "<div class='seat reguler'>$sid</div>";
+                    }
 
-            <!-- SWEETBOX A -->
-            <div class="text-center mb-3">
-            <?php
-            for ($i = 1; $i <= 18; $i += 2) {
-                $s1 = "A$i";
-                $s2 = "A" . ($i + 1);
-                $label = "$s1|$s2";
-                echo "<div class='seat sweetbox'>$label</div>";
-            }
-            ?>
+                    echo "</div>";
+                }
+                ?>
             </div>
 
-            <!-- KURSI REGULER B–J -->
-            <?php
-            $kursi_kiri = 4;
+            <div class="mt-8 text-center">
+                <p class="text-gray-400 text-sm italic">* Tampilan ini adalah preview layout kursi di sisi user.</p>
+            </div>
 
-            for ($r = 1; $r <= 9; $r++) {
-                echo "<div class='mb-2 text-center'>";
-                
-                for ($i = 1; $i <= $kursi_kiri; $i++) {
-                    $sid = $baris_nama[$r] . $i;
-                    echo "<div class='seat reguler'>$sid</div>";
-                }
-
-                echo "<span class='lorong'></span>";
-
-                for ($i = 5; $i <= 19; $i++) {
-                    $sid = $baris_nama[$r] . $i;
-                    echo "<div class='seat reguler'>$sid</div>";
-                }
-
-                echo "</div>";
-            }
-            ?>
         </div>
-
+    <?php else: ?>
+        <!-- State Belum Pilih Studio -->
+        <div class="bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 p-12 text-center">
+            <i class="ph ph-armchair text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-400">Pilih Studio Terlebih Dahulu</h3>
+            <p class="text-gray-500 mt-2">Klik salah satu tombol studio di atas untuk melihat layout kursi.</p>
+        </div>
     <?php endif; ?>
 
 </div>
