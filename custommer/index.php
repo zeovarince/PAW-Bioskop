@@ -1,23 +1,33 @@
 <?php
 session_start();
 include "../koneksi.php"; 
+include "../function.php"; // Memuat fungsi getAverageRating()
+
+// Cek status login
+$is_logged_in = isset($_SESSION['login']);
+
 // Ambil Semua Data Film
 $query = "SELECT * FROM movies ORDER BY release_date ASC";
 $result = mysqli_query($conn, $query);
 
 $now_showing = [];
 $coming_soon = [];
-$hero_movie = null; 
 $today = date('Y-m-d');
 
 while ($row = mysqli_fetch_assoc($result)) {
     // Tentukan path gambar
     $poster_path = "../assets/images/" . $row['poster'];
     if (empty($row['poster']) || !file_exists($poster_path)) {
-        $row['poster_url'] = "https://placehold.co/300x450?text=No+Poster";
+        $row['poster_url'] = "https://placehold.co/1280x720?text=NO+POSTER";
     } else {
         $row['poster_url'] = $poster_path;
     }
+    
+    // Ambil Rating
+    $rating_data = getAverageRating($row['Id_movie']);
+    $row['avg_rating'] = $rating_data['average'];
+    $row['review_count'] = $rating_data['count'];
+
 
     // Pisahkan Now Showing vs Coming Soon
     if ($row['release_date'] > $today) {
@@ -27,10 +37,9 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
 }
 
-// Ambil 1 film terbaru dari Now Showing untuk jadi Hero Banner
-if (!empty($now_showing)) {
-    $hero_movie = $now_showing[0]; 
-}
+// --- DATA UNTUK SLIDESHOW ---
+// Ambil 3 film pertama dari Now Showing untuk dijadikan slide
+$slides = array_slice($now_showing, 0, 3); 
 
 // --- LIMIT DATA UNTUK HOME (Maksimal 5 Film) ---
 $now_showing_limit = array_slice($now_showing, 0, 5);
@@ -74,12 +83,26 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
         .hero-overlay-left {
             background: linear-gradient(to right, #141414 20%, transparent 100%);
         }
+        /* CSS untuk Carousel */
+        .carousel-item {
+            transition: opacity 1s ease-in-out;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .carousel-item.active {
+            opacity: 1;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-cinemaBlack font-sans text-gray-200">
 
     <!--navbar user -->
-    <nav class="bg-cinemaBlack border-b border-gray-800 py-4">
+    <nav class="bg-cinemaBlack border-b border-gray-800 py-4 fixed top-0 w-full z-50">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
             
             <div class="flex items-center gap-4">
@@ -94,17 +117,16 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
             <div class="hidden md:flex space-x-8">
                 <a href="index.php" class="bg-cinemaGold text-black px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                 <a href="movies.php" class=" text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Movies</a>
-                <!-- TAMBAHKAN LINK DASHBOARD DI SINI -->
-                <?php if (isset($_SESSION['login'])): ?>
+                
+                <?php if ($is_logged_in): ?>
                     <a href="dashboard.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Dashboard</a>
                 <?php endif; ?>
-                <!-- END TAMBAHAN -->
                 
                 <a href="contact.php" class="text-gray-300 hover:text-cinemaGold px-3 py-2 rounded-md text-sm font-medium transition">Contact</a>
             </div>
 
             <div class="flex items-center gap-4">
-                <?php if (isset($_SESSION['login'])): ?>
+                <?php if ($is_logged_in): ?>
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold text-white">Halo, <?= $_SESSION['username'] ?></p>
                         <p class="text-xs text-cinemaGold">Member</p>
@@ -121,48 +143,73 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
         </div>
     </nav>
 
-    <!--hero banner -->
-    <?php if ($hero_movie): ?>
-    <header class="relative w-full h-[85vh] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transform scale-105 hover:scale-100 transition duration-[10s]"
-             style="background-image: url('<?= $hero_movie['poster_url'] ?>');">
-        </div>
-        
-        <div class="absolute inset-0 bg-black/40"></div> 
-        <div class="absolute inset-0 hero-overlay"></div>
-        <div class="absolute inset-0 hero-overlay-left"></div>
-
-        <div class="relative z-10 h-full max-w-7xl mx-auto px-6 flex flex-col justify-center pt-20">
-            <span class="inline-block bg-cinemaRed text-white text-xs font-bold px-3 py-1 rounded w-fit mb-4 uppercase tracking-wider">
-                Sedang Tayang
-            </span>
+    <!--hero banner / SLIDESHOW -->
+    <header class="relative w-full h-[85vh] overflow-hidden pt-20">
+        <div id="carousel" class="relative w-full h-full">
             
-            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 max-w-3xl leading-tight drop-shadow-2xl">
-                <?= $hero_movie['judul'] ?>
-            </h1>
-            
-            <div class="flex items-center gap-4 text-gray-300 text-sm mb-6 font-medium">
-                <span class="flex items-center gap-1"><i class="ph ph-clock text-cinemaGold"></i> <?= $hero_movie['duration'] ?> Menit</span>
-                <span>•</span>
-                <span><?= $hero_movie['genre'] ?? 'Movie' ?></span>
-                <span>•</span>
-                <span class="border border-gray-500 px-2 rounded text-xs"><?= $hero_movie['age_rating'] ?? 'SU' ?></span>
-            </div>
+            <?php if (!empty($slides)): ?>
+                <?php foreach ($slides as $index => $movie): ?>
+                    <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                            style="background-image: url('<?= $movie['poster_url'] ?>');">
+                        </div>
+                        
+                        <div class="absolute inset-0 bg-black/40"></div> 
+                        <div class="absolute inset-0 hero-overlay"></div>
+                        <div class="absolute inset-0 hero-overlay-left"></div>
 
-            <p class="text-gray-300 max-w-xl text-lg mb-8 line-clamp-3 leading-relaxed drop-shadow-md">
-                <?= $hero_movie['description'] ?>
-            </p>
+                        <div class="relative z-10 h-full max-w-7xl mx-auto px-6 flex flex-col justify-center">
+                            <span class="inline-block bg-cinemaRed text-white text-xs font-bold px-3 py-1 rounded w-fit mb-4 uppercase tracking-wider">
+                                Sedang Tayang
+                            </span>
+                            
+                            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 max-w-3xl leading-tight drop-shadow-2xl">
+                                <?= $movie['judul'] ?>
+                            </h1>
+                            
+                            <div class="flex items-center gap-4 text-gray-300 text-sm mb-6 font-medium">
+                                <span class="flex items-center gap-1"><i class="ph ph-clock text-cinemaGold"></i> <?= $movie['duration'] ?> Menit</span>
+                                <span>•</span>
+                                <span><?= $movie['genre'] ?? 'Movie' ?></span>
+                                <span>•</span>
+                                <span class="border border-gray-500 px-2 rounded text-xs"><?= $movie['age_rating'] ?? 'SU' ?></span>
+                                <span>•</span>
+                                <span class="flex items-center gap-1 text-cinemaGold font-bold">
+                                    <i class="ph ph-star-fill"></i> <?= $movie['avg_rating'] ?> (<?= $movie['review_count'] ?>)
+                                </span>
+                            </div>
 
-            <div class="flex gap-4">
-                <a href="buy_ticket.php?id=<?= $hero_movie['Id_movie'] ?>" 
-                   class="bg-cinemaRed hover:bg-red-700 text-white px-8 py-3.5 rounded-lg font-bold text-lg flex items-center gap-2 shadow-lg shadow-red-900/50 transition transform hover:-translate-y-1">
-                    <i class="ph ph-ticket text-xl"></i> Beli Tiket
-                </a>
-            </div>
+                            <p class="text-gray-300 max-w-xl text-lg mb-8 line-clamp-3 leading-relaxed drop-shadow-md">
+                                <?= $movie['description'] ?>
+                            </p>
+
+                            <div class="flex gap-4">
+                                <a href="buy_ticket.php?id=<?= $movie['Id_movie'] ?>" 
+                                   class="bg-cinemaRed hover:bg-red-700 text-white px-8 py-3.5 rounded-lg font-bold text-lg flex items-center gap-2 shadow-lg shadow-red-900/50 transition transform hover:-translate-y-1">
+                                    <i class="ph ph-ticket text-xl"></i> Beli Tiket
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <!-- TOMBOL NAVIGASI MANUAL -->
+                <button id="prevBtn" class="absolute left-0 top-1/2 transform -translate-y-1/2 z-20 p-4 bg-black/50 hover:bg-black/80 text-white transition rounded-r-lg">
+                    <i class="ph ph-caret-left text-2xl"></i>
+                </button>
+                <button id="nextBtn" class="absolute right-0 top-1/2 transform -translate-y-1/2 z-20 p-4 bg-black/50 hover:bg-black/80 text-white transition rounded-l-lg">
+                    <i class="ph ph-caret-right text-2xl"></i>
+                </button>
+
+            <?php else: ?>
+                 <div class="absolute inset-0 flex items-center justify-center bg-cinemaDark text-gray-500 text-2xl font-bold">
+                    Tidak ada Film untuk Slideshow.
+                 </div>
+            <?php endif; ?>
+
         </div>
     </header>
-    <?php endif; ?>
-
+    
     <!-- nampilin film -->
     <main class="max-w-7xl mx-auto px-6 py-16">
 
@@ -192,7 +239,7 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
                             </a>
                         </div>
                         <div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-yellow-400 text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
-                            <i class="ph ph-star-fill"></i> <?= $movie['rating'] ?? '0.0' ?>
+                            <i class="ph ph-star-fill"></i> <?= $movie['avg_rating'] ?>
                         </div>
                     </div>
 
@@ -262,6 +309,63 @@ $coming_soon_limit = array_slice($coming_soon, 0, 5);
             </div>
         </div>
     </footer>
+    
+    <script>
+        const carousel = document.getElementById('carousel');
+        const items = carousel.querySelectorAll('.carousel-item');
+        let currentIndex = 0;
+        let autoplayInterval; // Variabel untuk menyimpan timer
+
+        function showSlide(index) {
+            // Logika loop
+            if (index >= items.length) {
+                currentIndex = 0;
+            } else if (index < 0) {
+                currentIndex = items.length - 1;
+            } else {
+                currentIndex = index;
+            }
+
+            items.forEach((item, i) => {
+                item.classList.remove('active');
+                if (i === currentIndex) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function startAutoplay() {
+            // Hentikan autoplay yang lama jika ada
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+            }
+            
+            // Mulai autoplay baru
+            autoplayInterval = setInterval(() => {
+                showSlide(currentIndex + 1);
+            }, 5000); // Pindah otomatis setiap 5 detik
+        }
+        
+        function manualSlide(direction) {
+            // Pindah slide secara manual
+            showSlide(currentIndex + direction);
+            
+            // Hentikan dan mulai ulang autoplay agar tidak langsung pindah setelah diklik
+            startAutoplay();
+        }
+
+        // Event listener untuk tombol navigasi
+        document.getElementById('prevBtn')?.addEventListener('click', () => manualSlide(-1));
+        document.getElementById('nextBtn')?.addEventListener('click', () => manualSlide(1));
+
+        // Inisialisasi tampilan slide pertama dan mulai autoplay
+        document.addEventListener('DOMContentLoaded', () => {
+            if (items.length > 0) {
+                showSlide(0);
+                startAutoplay();
+            }
+        });
+    </script>
 
 </body>
 </html>
