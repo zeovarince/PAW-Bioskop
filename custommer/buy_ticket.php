@@ -6,7 +6,50 @@ include "../function.php"; // Ditambahkan: Memuat fungsi getStudios() dan getAve
 // Cek status login
 $is_logged_in = isset($_SESSION['login']);
 
-// Cek jika id film ada
+// --- LOGIKA VALIDASI FORM (Jika form disubmit) ---
+if (isset($_GET['action']) && $_GET['action'] === 'validate' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    $movie_id = $_POST['movie_id'] ?? null;
+    $studio_id = $_POST['studio_id'] ?? null;
+    $date = $_POST['date'] ?? null;
+    $time = $_POST['time'] ?? null;
+    $qty = (int)($_POST['qty'] ?? 1);
+
+    // Jika ID film hilang dari POST, redirect ke daftar movies
+    if (!$movie_id) {
+        header("Location: movies.php");
+        exit;
+    }
+    
+    $waktu_tayang = mysqli_real_escape_string($conn, $date . ' ' . $time . ':00');
+    
+    // 1. Cek apakah kombinasi jadwal tersedia di database
+    $q_jadwal = mysqli_query($conn, "
+        SELECT Id_jadwal, harga 
+        FROM jadwal 
+        WHERE Id_movie = '".esc($movie_id)."' 
+        AND Id_studio = '".esc($studio_id)."' 
+        AND Waktu_tayang = '$waktu_tayang'
+    ");
+    
+    if (mysqli_num_rows($q_jadwal) == 0) {
+        $_SESSION['buy_error'] = "Jadwal tayang tidak ditemukan (Jadwal belum diatur admin atau sudah lewat). Silakan coba kombinasi lain.";
+        header("Location: buy_ticket.php?id=" . $movie_id); // REDIRECT KE BUY_TICKET YANG SAMA DENGAN ID
+        exit;
+    }
+    
+    $jadwal_data = mysqli_fetch_assoc($q_jadwal);
+    $id_jadwal = $jadwal_data['Id_jadwal'];
+    $price = (float)$jadwal_data['harga'];
+
+    // 2. Jika valid, redirect ke pilih_kursi.php dengan data valid dari DB
+    header("Location: pilih_kursi.php?id_jadwal=" . $id_jadwal . "&id=" . $movie_id . "&studio=" . $studio_id . "&date=" . $date . "&time=" . $time . "&qty=" . $qty . "&price=" . $price);
+    exit;
+}
+
+// --- LOGIKA UTAMA TAMPILAN ---
+
+// Cek jika id film ada (ID ini datang dari GET request awal)
 if (!isset($_GET['id'])) {
     header("Location: movies.php");
     exit;
@@ -110,6 +153,14 @@ body { background: #f5f5f5; }
 <div class="container my-4">
     <a href="movies.php" class="btn btn-sm btn-secondary mb-3">← Kembali ke Daftar Film</a>
 
+    <?php 
+    // Tampilkan pesan error jika ada (dari validasi server)
+    if (isset($_SESSION['buy_error'])) {
+        echo '<div class="alert alert-danger" role="alert">' . $_SESSION['buy_error'] . '</div>';
+        unset($_SESSION['buy_error']);
+    }
+    ?>
+
     <div class="movie-card">
         <img src="<?php echo $poster_src; ?>" class="poster-img">
         <div class="movie-details">
@@ -147,7 +198,7 @@ body { background: #f5f5f5; }
         <?php else: ?>
             <!-- JIKA SUDAH LOGIN, TAMPILKAN FORM -->
             <!-- Form Validation -->
-            <form id="bookingForm" action="buy_ticket.php?action=validate" method="POST">
+            <form id="bookingForm" action="buy_ticket.php?action=validate&id=<?= $id_safe ?>" method="POST">
                 <input type="hidden" name="movie_id" value="<?= $id_safe ?>">
 
                 <label class="form-label fw-semibold">Pilih Studio</label>
