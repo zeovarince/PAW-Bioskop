@@ -169,6 +169,7 @@ tailwind.config = {
                    class="text-gray-300 hover:text-cinemaRed">
                    Report
                 </a>
+                <a href="reviews.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Reviews</a>
 
                 <!-- ADMIN INFO -->
                 <div class="flex items-center gap-3 pl-6 border-l border-gray-700">

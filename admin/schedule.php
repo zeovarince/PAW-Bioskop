@@ -114,6 +114,7 @@ if (file_exists("../koneksi.php")) { // Cek file koneksi jika perlu, tapi sudah 
                             <?php endif; ?>
                         </a>
                         <a href="report.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Report</a>
+                        <a href="reviews.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Reviews</a>
                     </div>
                 </div>
 

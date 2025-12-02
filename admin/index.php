@@ -84,6 +84,7 @@ $tampil_soon = mysqli_query($conn, $query_soon);
                             <?php endif; ?>
                         </a>
                         <a href="report.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Report</a>
+                        <a href="reviews.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Reviews</a>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -174,6 +175,7 @@ $tampil_soon = mysqli_query($conn, $query_soon);
                                 <a href="manage_movie.php?id=<?= $movie['Id_movie'] ?>" class="mt-4 block w-full text-center bg-gray-100 hover:bg-cinemaRed hover:text-white text-gray-600 py-2 rounded-lg text-sm font-semibold transition">
                                     Edit Info
                                 </a>
+
                             </div>
                         </div>
                     <?php endwhile; ?>

@@ -105,6 +105,8 @@ $result_transaksi = mysqli_query($conn, $query_transaksi);
                             Validation
                         </a>
                         <a href="report.php" class="bg-cinemaGold text-black-300 px-3 py-2 rounded-full text-sm font-medium transition">Report</a>
+                        <a href="reviews.php" class="text-gray-300 hover:text-cinemaRed px-3 py-2 rounded-md text-sm font-medium transition">Reviews</a>
+
                     </div>
                 </div>
 
