@@ -1,21 +1,27 @@
 <?php
 ob_start();
 session_start();
-
 include "../koneksi.php";
 include "../function.php"; 
 
+// Hapus baris require_once "helper_functions.php"; karena tidak digunakan
+
 // 1. STATUS LOGIN
 $is_logged_in = isset($_SESSION['login']);
-$user_id = $_SESSION['user_id'] ?? null;
 
-// 2. VALIDASI ID FILM
+// 2. TENTUKAN ID FILM YANG SEDANG DIPROSES
 $id = '';
+$error_message = $_SESSION['buy_error'] ?? null;
+unset($_SESSION['buy_error']);
+
+// ID bisa datang dari GET (tampilan awal) atau POST (setelah validasi gagal)
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $id = $_GET['id'];
 } elseif (isset($_POST['movie_id']) && !empty($_POST['movie_id'])) {
     $id = $_POST['movie_id'];
-} else {
+}
+
+if (empty($id)) {
     header("Location: movies.php");
     exit;
 }
@@ -28,41 +34,76 @@ if (isset($_GET['action']) && $_GET['action'] == 'validate') {
         header("Location: ../login.php");
         exit;
     }
+    
     $post_movie_id = $_POST['movie_id'];
     $post_studio_id = $_POST['studio_id'];
     $post_date = $_POST['date']; 
     $post_time = $_POST['time']; 
     $post_qty = $_POST['qty'];
+    
+    // Pastikan semua data ada
+    if (empty($post_studio_id) || empty($post_date) || empty($post_time) || $post_qty <= 0) {
+        $_SESSION['buy_error'] = "Mohon lengkapi semua pilihan jadwal.";
+        header("Location: buy_ticket.php?id=" . $post_movie_id);
+        exit;
+    }
+
     $datetime_search = "$post_date $post_time"; 
 
-    $query_cari_jadwal = "SELECT Id_jadwal FROM jadwal WHERE Id_movie = '$post_movie_id' AND Id_studio = '$post_studio_id' AND Waktu_tayang LIKE '$datetime_search%' LIMIT 1";
+    // Query mencari ID Jadwal dan Harga yang sesuai
+    $query_cari_jadwal = "
+        SELECT Id_jadwal, harga 
+        FROM jadwal 
+        WHERE Id_movie = '".esc($post_movie_id)."' 
+        AND Id_studio = '".esc($post_studio_id)."' 
+        AND Waktu_tayang LIKE '".esc($datetime_search)."%' 
+        LIMIT 1
+    ";
     $cek_jadwal = mysqli_query($conn, $query_cari_jadwal);
 
     if (mysqli_num_rows($cek_jadwal) > 0) {
         $data_jadwal = mysqli_fetch_assoc($cek_jadwal);
         $id_jadwal_fix = $data_jadwal['Id_jadwal'];
-        header("Location: select_seat.php?id_jadwal=$id_jadwal_fix&qty=$post_qty");
+        $price = $data_jadwal['harga'];
+
+        // SUKSES: Redirect ke pilih_kursi.php DENGAN SEMUA PARAMETER YANG DIBUTUHKAN
+        header("Location: pilih_kursi.php?id_jadwal=$id_jadwal_fix&qty=$post_qty&price=$price&id=$post_movie_id&studio=$post_studio_id&date=$post_date&time=$post_time");
         exit;
     } else {
-        echo "<script>alert('Maaf, jadwal tayang tidak tersedia.'); window.history.back();</script>";
+        // GAGAL: Jadwal tidak ditemukan di DB
+        $_SESSION['buy_error'] = "Maaf, jadwal tayang tidak tersedia untuk kombinasi yang dipilih.";
+        header("Location: buy_ticket.php?id=" . $post_movie_id); // Redirect kembali dengan ID film
         exit;
     }
 }
 
-// --- 4. AMBIL DATA FILM ---
+
+// --- 4. AMBIL DATA FILM UNTUK TAMPILAN ---
+$id_safe = mysqli_real_escape_string($conn, $id); // Re-assign id_safe menggunakan ID yang sudah divalidasi
 $query = mysqli_query($conn, "SELECT * FROM movies WHERE Id_movie = '{$id_safe}'");
 if (!$query || mysqli_num_rows($query) == 0) {
-    echo "<script>alert('Film tidak ditemukan!'); window.location='movies.php';</script>";
+    header("Location: movies.php");
     exit;
 }
 $movie = mysqli_fetch_assoc($query);
 
-// Helper
+
+// Ambil Data Rating dari Database
+$q_avg = mysqli_query($conn, "SELECT AVG(rating) as avg_rat, COUNT(*) as total FROM reviews WHERE Id_movie = '$id_safe'");
+$d_avg = mysqli_fetch_assoc($q_avg);
+$avg_rating_db = number_format($d_avg['avg_rat'] ?? 0, 1); 
+$review_count_db = $d_avg['total'] ?? 0;
+
+
+// Ambil Data Studio dan Helper
 function col($arr, $key, $default = '') { return isset($arr[$key]) ? $arr[$key] : $default; }
+$studios_db = [];
+$q_std = mysqli_query($conn, "SELECT * FROM studios");
+while($row = mysqli_fetch_assoc($q_std)) $studios_db[] = $row;
+
 
 $judul = htmlspecialchars(col($movie, 'judul'));
 $poster_file = col($movie, 'poster');
-$rating = htmlspecialchars(col($movie, 'rating', '13+'));
 $age_rating = htmlspecialchars(col($movie, 'age_rating', '13+'));
 $genre = htmlspecialchars(col($movie, 'genre'));
 $duration = (int) col($movie, 'duration');
@@ -76,31 +117,15 @@ if (empty($poster_file) || !file_exists($poster_src)) {
     $poster_src = 'https://placehold.co/400x600?text=No+Poster';
 }
 
-// --- AMBIL DATA RATING & REVIEW ---
-// Hitung Rata-rata Rating
-$q_avg = mysqli_query($conn, "SELECT AVG(rating) as avg_rat, COUNT(*) as total FROM reviews WHERE Id_movie = '$id_safe'");
-$d_avg = mysqli_fetch_assoc($q_avg);
-$avg_rating_db = number_format($d_avg['avg_rat'], 1); 
-$review_count_db = $d_avg['total'];
-
-// Ambil Daftar Komentar Orang Lain (Read Only)
-$q_reviews_list = mysqli_query($conn, "SELECT r.*, u.username FROM reviews r JOIN users u ON r.Id_user = u.Id_user WHERE r.Id_movie = '$id_safe' ORDER BY r.created_at DESC LIMIT 10");
-
-// Data untuk Form Booking
-$studios_db = [];
-if (function_exists('getStudios')) {
-    $studios_db = getStudios();
-} else {
-    $q_std = mysqli_query($conn, "SELECT * FROM studios");
-    while($row = mysqli_fetch_assoc($q_std)) $studios_db[] = $row;
-}
-
 $tanggalList = [];
 for ($i = 0; $i < 7; $i++) {
     $ts = strtotime("+$i day");
     $tanggalList[] = ['label' => date("d M • D", $ts), 'value' => date("Y-m-d", $ts), 'enabled' => true ];
 }
 $showtimes = ['12:30', '14:45', '17:10', '19:20', '21:00'];
+
+// --- QUERY LIST ULASAN UNTUK TAMPILAN ---
+$q_reviews_list = mysqli_query($conn, "SELECT r.*, u.username FROM reviews r JOIN users u ON r.Id_user = u.Id_user WHERE r.Id_movie = '$id_safe' ORDER BY r.created_at DESC LIMIT 10");
 ?>
 
 <!DOCTYPE html>
@@ -110,6 +135,7 @@ $showtimes = ['12:30', '14:45', '17:10', '19:20', '21:00'];
 <title><?php echo $judul; ?> - Buy Ticket</title>
 <link rel="icon" href="../logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<!-- Tambahkan Tailwind CSS untuk Konsistensi Styling -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <style>
@@ -130,13 +156,20 @@ $showtimes = ['12:30', '14:45', '17:10', '19:20', '21:00'];
 <div class="container my-5" style="max-width: 900px;">
     <a href="movies.php" class="btn btn-outline-secondary btn-sm mb-4 fw-bold">← Kembali ke Movies</a>
 
+    <?php 
+    // Tampilkan pesan error jika ada (dari validasi server)
+    if ($error_message) {
+        echo '<div class="alert alert-danger" role="alert"><strong>Gagal:</strong> ' . $error_message . '</div>';
+    }
+    ?>
+
     <!-- CARD FILM -->
     <div class="movie-card">
         <img src="<?php echo $poster_src; ?>" class="poster-img" onerror="this.src='https://placehold.co/400x600?text=No+Poster'">
         <div class="movie-details">
             <h1 class="fs-2 fw-bold text-dark mb-2"><?php echo $judul; ?></h1>
             
-            <!-- TAMPILAN RATING (Hanya Menampilkan) -->
+            <!-- TAMPILAN RATING -->
             <div class="mb-3">
                 <span class="rating-pill" title="Rating rata-rata dari pengguna">
                     ⭐ <?php echo $avg_rating_db; ?>/5 (<?php echo $review_count_db; ?> Ulasan)
@@ -163,10 +196,10 @@ $showtimes = ['12:30', '14:45', '17:10', '19:20', '21:00'];
         <?php if (!$is_logged_in): ?>
             <div class="text-center py-5">
                 <p class="text-muted mb-3">Silakan login untuk melanjutkan pemesanan.</p>
-                <a href="../login.php" class="btn btn-danger fw-bold px-5 py-2 rounded-pill">Masuk / Daftar</a>
+                <a href="../login.php" class="btn btn-danger w-100 py-3 fw-bold rounded-pill">Masuk / Daftar</a>
             </div>
         <?php else: ?>
-            <form id="bookingForm" action="buy_ticket.php?action=validate&id=<?= $id_safe ?>" method="POST">
+            <form id="bookingForm" action="buy_ticket.php?action=validate" method="POST">
                 <input type="hidden" name="movie_id" value="<?= $id_safe ?>">
                 
                 <!-- PILIH STUDIO -->
