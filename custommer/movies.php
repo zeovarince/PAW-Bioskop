@@ -135,12 +135,11 @@ while ($row = mysqli_fetch_assoc($res)) {
                     $avg_rating = $movie['avg_rating'];
                     $review_count = $movie['review_count'];
                     ?>
-                    <div class="movie-card bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200 group">
-                        
+                    <div class="movie-card bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200 group flex flex-col">
+  
                         <!-- Poster dan Rating -->
                         <div class="relative">
-                            <img src="<?php echo $poster_url; ?>" class="w-full h-64 object-cover group-hover:scale-105 transition duration-500">
-                            
+                            <img src="<?php echo $poster_url; ?>" class="w-full aspect-[2/3] object-cover group-hover:scale-105 transition duration-500">
                             <!-- Rating Display -->
                             <div class="absolute top-2 right-2 bg-cinemaBlack/80 text-cinemaGold text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-md">
                                 <i class="ph ph-star-fill text-sm"></i> 
@@ -161,7 +160,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 
                         <!-- Info Film -->
                         <div class="p-4">
-                            <h4 class="font-bold text-gray-800 text-lg truncate"><?php echo $judul; ?></h4>
+                            <h4 class="font-bold text-gray-800 text-lg truncate flex-1"><?php echo $judul; ?></h4>
                             <div class="flex justify-between items-center text-xs text-gray-500 mt-2">
                                 <span>Durasi: <?= safe($movie, 'duration', 0) ?> Menit</span>
                                 <span class="border border-gray-400 px-1 rounded"><?= safe($movie, 'age_rating', 'SU') ?></span>
@@ -216,16 +215,16 @@ while ($row = mysqli_fetch_assoc($res)) {
                     $poster_url = poster_src($poster);
                     $release_date_fmt = $release_date ? date('d M Y', strtotime($release_date)) : '-';
                     ?>
-                    <div class="movie-card coming-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                    <div class="movie-card coming-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 flex flex-col">
 
                         <div class="relative">
-                            <img src="<?php echo $poster_url; ?>" class="w-full h-64 object-cover">
+                            <img src="<?php echo $poster_url; ?>" class="w-full aspect-[2/3] object-cover">
                             <div class="absolute top-2 left-2 bg-cinemaRed text-white text-xs px-2 py-1 rounded">
                                 COMING SOON
                             </div>
                         </div>
 
-                        <div class="p-4">
+                        <div class="p-4 flex flex-col flex-1 justify-between">
                             <h4 class="font-bold text-gray-800 text-lg"><?php echo $judul; ?></h4>
 
                             <p class="text-gray-600 text-sm mt-3 line-clamp-4">
