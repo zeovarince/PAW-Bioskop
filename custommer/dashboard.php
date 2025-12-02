@@ -126,7 +126,9 @@ $result_history = mysqli_query($conn, $query_history);
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php if (mysqli_num_rows($result_history) > 0): ?>
                             <?php while($row = mysqli_fetch_assoc($result_history)): 
-                                $is_future = strtotime($row['Waktu_tayang']) > time();
+                                $is_confirmed = $row['status_booking'] == '1';
+                                // Logika $is_future dihapus agar bisa review segera setelah Confirmed
+                                $has_reviewed = $row['review_status'] > 0;
                             ?>
                             <tr class="hover:bg-gray-50 transition">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-cinemaRed">
@@ -159,16 +161,14 @@ $result_history = mysqli_query($conn, $query_history);
                                         <a href="payment_confirm.php?id_booking=<?= $row['Id_booking'] ?>" class="bg-cinemaRed hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-md">
                                             Lanjut Bayar
                                         </a>
-                                    <?php elseif ($status == '1'): ?>
-                                        <?php if (!$is_future && $row['review_status'] == 0): ?>
-                                            <!-- Link ke halaman review jika tiket sudah CONFIRMED dan tayang sudah lewat -->
+                                    <?php elseif ($is_confirmed): ?>
+                                        <?php if (!$has_reviewed): ?>
+                                            <!-- Link ke halaman review jika tiket sudah CONFIRMED dan BELUM di-review -->
                                             <a href="review_form.php?id_movie=<?= $row['Id_movie'] ?>" class="bg-cinemaGold text-black px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-yellow-600 transition shadow">
                                                 Beri Review
                                             </a>
-                                        <?php elseif ($row['review_status'] > 0): ?>
-                                            <span class="text-gray-500 text-xs px-3 py-1.5">Reviewed</span>
                                         <?php else: ?>
-                                            <span class="text-blue-600 text-xs px-3 py-1.5">Tiket Aktif</span>
+                                            <span class="text-gray-500 text-xs px-3 py-1.5">Reviewed</span>
                                         <?php endif; ?>
                                     <?php else: ?>
                                         <span class="text-gray-400 text-xs px-3 py-1.5">-</span>
