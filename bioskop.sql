@@ -835,14 +835,15 @@ CREATE TABLE reviews (
     Id_movie INT NOT NULL
 );
 
-CREATE TABLE `transaksi` (
-  `id_transaksi` int NOT NULL,
-  `id_jadwal` int NOT NULL,
-  `seat` varchar(5) NOT NULL,
-  `nama_customer` varchar(100) DEFAULT NULL,
-  `tanggal_beli` datetime DEFAULT CURRENT_TIMESTAMP,
-  `kursi` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE transaksi (
+    id_transaksi int(11) NOT NULL AUTO_INCREMENT,
+    id_jadwal int(11) NOT NULL,
+    seat varchar(255) NOT NULL, -- Diperlebar agar muat banyak kursi
+    nama_customer varchar(100) DEFAULT NULL,
+    tanggal_beli datetime DEFAULT CURRENT_TIMESTAMP,
+    kursi varchar(255) NOT NULL, -- Diperlebar juga
+    PRIMARY KEY (id_transaksi)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
 
 -- ngehubungin antar table fk (foreign key)
