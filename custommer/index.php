@@ -39,7 +39,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 // --- DATA UNTUK SLIDESHOW ---
 // Ambil 3 film pertama dari Now Showing untuk dijadikan slide
-$slides = array_slice($now_showing, 0, 3); 
+$slides = array_slice($now_showing, 0, 5); 
 
 // --- LIMIT DATA UNTUK HOME (Maksimal 5 Film) ---
 $now_showing_limit = array_slice($now_showing, 0, 5);

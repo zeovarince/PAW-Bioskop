@@ -202,8 +202,9 @@ $result_transaksi = mysqli_query($conn, $query_transaksi);
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
                 <h3 class="text-lg font-bold text-gray-900">Transaksi Terbaru</h3>
                 <div class="flex gap-2">
-                    <button class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 font-medium text-gray-600">Filter</button>
-                    <button class="px-3 py-1.5 text-sm bg-cinemaBlack text-white rounded-lg hover:bg-gray-800 font-medium shadow-md">Export CSV</button>
+                    <a href="export_csv.php" class="px-3 py-1.5 text-sm bg-cinemaBlack text-white rounded-lg hover:bg-gray-800 font-medium shadow-md">
+                        Export CSV
+                    </a>
                 </div>
             </div>
             
